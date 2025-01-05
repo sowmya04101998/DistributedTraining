@@ -33,6 +33,8 @@ First, inspect the training script (`mnist_model.py`) by navigating to its direc
 (gujcost_workshop) $ cd path/to/single_gpu_training
 (gujcost_workshop) $ cat mnist_model.py
 ```
+
+```
 # Copyright (c) 2023 CDAC, Pune
 
 # Importing required libraries
