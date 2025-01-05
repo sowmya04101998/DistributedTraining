@@ -1,10 +1,7 @@
----
 
 # **Multi-GPU Training**
 
 This guide explains how to train a CNN model on the MNIST dataset using multiple GPUs. It builds upon the single-GPU training approach and introduces `DataParallel` for leveraging multiple GPUs. This approach helps to accelerate training by distributing computation across available GPUs.
-
----
 
 ## **Step 1: Ensure the Environment is Active**
 
@@ -15,7 +12,6 @@ $ module load miniconda
 $ conda activate gujcost_workshop
 ```
 
----
 
 ## **Step 2: Prepare the MNIST Dataset**
 
@@ -31,7 +27,7 @@ Alternatively, if the dataset is already downloaded from a single-GPU workflow, 
 (gujcost_workshop) $ cp -r /path/to/existing/mnist/data ./data
 ```
 
----
+
 
 ## **Step 3: Inspect the Multi-GPU Training Script**
 
@@ -55,7 +51,6 @@ The script `mnist_multigpu.py` contains the implementation for training using mu
    - Experiment with optimizers like `Adam` or `RMSprop` for faster convergence.
    - Implement learning rate schedulers like `StepLR`, `ExponentialLR`, or `CosineAnnealingLR`.
 
----
 
 ## **Step 4: SLURM Script for Multi-GPU Training**
 
@@ -89,8 +84,11 @@ conda activate gujcost_workshop
 # Run the script
 kernprof -o ${SLURM_JOBID}_${SLURM_CPUS_PER_TASK}.lprof -l mnist_multigpu.py --epochs=5 --batch-size=128
 ```
-
----
+Changes made are follows:
+```bash
+#SBATCH --ntasks=2                 # Number of tasks
+#SBATCH --gres=gpu:2               # Number of GPUs
+```
 
 ## **Step 5: Submit the SLURM Job**
 
@@ -102,7 +100,7 @@ Submit the job using the following command:
 
 Once submitted, the job will run on the allocated GPUs, and the output and error logs will be saved in the specified files.
 
----
+
 
 ## **Step 6: Analyze the Profiling Data**
 
@@ -141,7 +139,7 @@ Line #      Hits         Time  Per Hit   % Time  Line Contents
 
 The profiling results will help identify bottlenecks in the training loop.
 
----
+
 
 ## **Step 7: Experimentation Options**
 
@@ -155,7 +153,7 @@ Participants can try the following optimizations:
 3. **Adjust Learning Rate Schedulers**:
    - Use `StepLR`, `ExponentialLR`, or `CosineAnnealingLR` to tune learning rate schedules.
 
----
+
 ### **Update Slurm Settings**
 Change the Slurm script to utilize more CPU cores:
 
@@ -171,5 +169,4 @@ Submit the job again and observe the performance improvement.
 
 This guide outlines the process of training a CNN model on the MNIST dataset using multiple GPUs. Profiling and experimentation are key to understanding the performance gains from distributed training. By leveraging multi-GPU setups, you can significantly reduce training time and improve model scalability.
 
----
 
