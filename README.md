@@ -6,7 +6,7 @@ Optimizing your script for a single GPU is a crucial first step before scaling t
 
 ```bash
 $ ssh <hpcuser>@14.139.62.247 -p 4422
-$ git clone [<repo>](https://github.com/kishoryd/DistributedTraining.git)
+$ git clone https://github.com/kishoryd/DistributedTraining.git
 ```
 
 ## **Step 1: Activate Conda Environment**
