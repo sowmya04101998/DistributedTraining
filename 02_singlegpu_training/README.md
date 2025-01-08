@@ -222,7 +222,7 @@ After the job completes, analyze the profiling results:
   ```bash
   kernprof -o ${SLURM_JOBID}_${SLURM_CPUS_PER_TASK}.lprof -l mnist_model.py --epochs=5 --no-cuda
   ```
-3. Change the batxhsize of dataloader to 128 and 256 see the performance(`slurm_submit.sh`):
+3. Change the batchsize of dataloader to 128 and 256 see the performance(`slurm_submit.sh`):
   ```bash
   kernprof -o ${SLURM_JOBID}_${SLURM_CPUS_PER_TASK}.lprof -l mnist_model.py --epochs=5 --batch-size=128
   ```
