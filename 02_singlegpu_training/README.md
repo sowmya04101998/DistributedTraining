@@ -6,7 +6,7 @@ Optimizing your script for a single GPU is a crucial first step before scaling t
 $ ssh <hpcaiuser>@14.139.62.247 -p 4422
 $ git clone https://github.com/kishoryd/DistributedTraining.git
 ```
-
+Replace <hpcaiuser> with user account created for individual participants
 ---
 
 ## **Step 1: Activate Conda Environment**
@@ -14,7 +14,7 @@ $ git clone https://github.com/kishoryd/DistributedTraining.git
 To simplify the setup, use a pre-configured Conda environment. Follow these steps:
 
 ### Setting Up Conda for Line Profiling
-This step configures the environment to use `line_profiler` for analyzing the code.
+This step configures the environment to use `line_profiler` for analyzing the code and to download dataset.
 
 ```bash
 $ module load miniconda
@@ -85,6 +85,36 @@ class Net(nn.Module):
         return F.log_softmax(x, dim=1)
 ```
 
+#### Initialize Model, Optimizer, and Scheduler
+```python
+# Initialize model, optimizer, and scheduler
+model = Net().to(device)
+optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
+scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
+```
+
+#### Configure DataLoader with CUDA Optimization
+```python
+if use_cuda:
+    cuda_kwargs = {'num_workers': num_workers, 'pin_memory': True, 'shuffle': True}
+    train_kwargs.update(cuda_kwargs)
+    test_kwargs.update(cuda_kwargs)
+```
+
+#### Define Dataset Transformations
+```python
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.1307,), (0.3081,))  # Normalize MNIST images
+])
+```
+
+#### Initialize DataLoaders
+```python
+train_loader = torch.utils.data.DataLoader(dataset1, **train_kwargs)
+test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
+```
+
 #### Training Function with Profiling
 ```python
 @profile
@@ -128,19 +158,31 @@ Create a `slurm_submit.sh` file:
 
 ```bash
 #!/bin/bash
-#SBATCH --job-name=mnist_1GPU
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
-#SBATCH --partition=gpu
-#SBATCH --gres=gpu:1
-#SBATCH --output=logs_%j.out
-#SBATCH --error=logs_%j.err
-#SBATCH --time=00:10:00
+#SBATCH --job-name=mnist_1GPU    # create a short name for your job
+#SBATCH --nodes=1                # node count
+#SBATCH --ntasks=1               # total number of tasks across all nodes
+#SBATCH --cpus-per-task=1        # cpu-cores per task (>1 if multi-threaded tasks)
+#SBATCH --partition=gpu          # Specify GPU partition for GPU Nodes
+##SBATCH --reservation=hpcai      # Reservation incase of urgent requirement
+##SBATCH --nodelist=rpgpu*        # Specify reservation GPU node name provided
+#SBATCH --gres=gpu:1             # number of gpus per node
+#SBATCH --output=logs_%j.out     # output logfile name
+#SBATCH --error=logs_%j.err      # error logfile name
+#SBATCH --time=00:10:00          # total run time limit (HH:MM:SS)
 
-module purge
+# which gpu node was used
+echo "Running on host of RUDRA" $(hostname)
+
+module purge #remove unneccesary loaded modules
+
+#load the module
 module load miniconda
+
+#activate the environment
 conda activate gujcost_workshop
+
+#Try both the option, See the performance
+
 kernprof -o ${SLURM_JOBID}_${SLURM_CPUS_PER_TASK}.lprof -l mnist_model.py --epochs=5
 ```
 
@@ -149,6 +191,15 @@ Submit the job:
 ```bash
 (gujcost_workshop) $ sbatch slurm_submit.sh
 ```
+
+### Monitor GPU and System Performance
+Once allocated, monitor the GPU and system threads:
+```bash
+$ ssh <gpu_node>
+$ watch -n 0.1 nvidia-smi
+$ top -u <hpcusername>
+```
+This will help you observe GPU utilization and thread/process spawning during execution.
 
 ---
 
@@ -162,14 +213,15 @@ After the job completes, analyze the profiling results:
 
 ---
 
-## **Optimizing Data Loading**
+## **Assignments**
 
-Analyze the performance using CUDA cores and workers together:
+- Adjust `--cpus-per-task` to values like 2, 4, 6, 8, or 10 analyze the time and resource utilization.
 
-- Adjust `--cpus-per-task` to values like 2, 4, 6, 8, or 10.
-- Modify the `train_loader` to optimize `num_workers` and observe how data loading speeds improve.
+- Use the following line to test performance without GPU(change inside SLURM script):
+  ```bash
+  kernprof -o ${SLURM_JOBID}_${SLURM_CPUS_PER_TASK}.lprof -l mnist_model.py --epochs=5 --no-cuda
+  ```
 
----
 
 ## **How the Conda Environment Was Created**
 
@@ -181,8 +233,9 @@ $ pip install torch torchvision torchaudio --index-url https://download.pytorch.
 $ conda install line_profiler --channel conda-forge
 ```
 
----
+
 
 ## **Summary**
 
 Optimizing single-GPU training is a critical step before scaling to multiple GPUs. Efficient code ensures reduced resource usage and shorter queue times. By profiling and addressing bottlenecks, you can achieve higher GPU utilization and better performance.
+[Go to Multi-GPU Data Parallel Training](03_multigpu_dp_training/) for the next steps in distributed training.
