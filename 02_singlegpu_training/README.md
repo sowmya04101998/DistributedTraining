@@ -244,4 +244,4 @@ $ conda install line_profiler --channel conda-forge
 ## **Summary**
 
 Optimizing single-GPU training is a critical step before scaling to multiple GPUs. Efficient code ensures reduced resource usage and shorter queue times. By profiling and addressing bottlenecks, you can achieve higher GPU utilization and better performance.
-[Go to Multi-GPU Data Parallel Training](03_multigpu_dp_training/) for the next steps in distributed training.
+[Go to Multi-GPU Data Parallel Training](../03_multigpu_dp_training/) for the next steps in distributed training.
