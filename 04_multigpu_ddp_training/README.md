@@ -174,8 +174,7 @@ torchrun --nproc_per_node=2 mnist_ddpmodel.py --epochs=5 --batch-size=128
 #### **Objective:**
 Train a Convolutional Neural Network (CNN) on the **CIFAR-10 dataset** using PyTorch, and implement **data parallelism** to utilize multiple GPUs for faster training.
 
----
----
+
 #### **Assignment Description:**
 The goal is to build and train a CNN on the CIFAR-10 dataset using **PyTorch's DataParallel** module for multi-GPU support. The dataset consists of 60,000 32x32 color images in 10 classes, with 50,000 training images and 10,000 test images.
 
@@ -207,6 +206,7 @@ The goal is to build and train a CNN on the CIFAR-10 dataset using **PyTorch's D
    - Provide the training and testing accuracy for the model.
    - Save the trained model and submit the code with comments.
   
+---
 ---
 ---
 
