@@ -216,12 +216,17 @@ After the job completes, analyze the profiling results:
 
 ## **Assignments**
 
-- Adjust `--cpus-per-task` to values like 2, 4, 6, 8, or 10 analyze the time and resource utilization (`slurm_submit.sh`).
+1. Adjust `--cpus-per-task` to values like 2, 4, 6, 8, or 10 analyze the time and resource utilization (`slurm_submit.sh`).
 
-- Use the following line to test performance without GPU(change inside SLURM script `slurm_submit.sh`):
+2. Use the following line to test performance without GPU(`slurm_submit.sh`):
   ```bash
   kernprof -o ${SLURM_JOBID}_${SLURM_CPUS_PER_TASK}.lprof -l mnist_model.py --epochs=5 --no-cuda
   ```
+3. Change the batxhsize of dataloader to 128 and 256 see the performance(`slurm_submit.sh`):
+  ```bash
+  kernprof -o ${SLURM_JOBID}_${SLURM_CPUS_PER_TASK}.lprof -l mnist_model.py --epochs=5 --batch-size=128
+  ```
+
 ---
 ---
 
