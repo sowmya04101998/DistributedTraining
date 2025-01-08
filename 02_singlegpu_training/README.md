@@ -21,7 +21,6 @@ $ module load miniconda
 $ conda activate gujcost_workshop
 ```
 
----
 
 ## **Step 2: Download the MNIST Dataset**
 
@@ -31,7 +30,7 @@ Ensure the dataset is downloaded on the login node since compute nodes typically
 (gujcost_workshop) $ python download_data.py
 ```
 
----
+
 
 ## **Step 3: Inspect and Profile the Script**
 
@@ -150,7 +149,6 @@ def test(model, device, test_loader):
           f'({100. * correct / len(test_loader.dataset):.0f}%)\n')
 ```
 
----
 
 ## **Step 4: Slurm Script for Single-GPU Training**
 
@@ -201,7 +199,7 @@ $ top -u <hpcusername>
 ```
 This will help you observe GPU utilization and thread/process spawning during execution.
 
----
+
 
 ## **Step 5: Analyze Profiling Data**
 
@@ -212,6 +210,7 @@ After the job completes, analyze the profiling results:
 ```
 
 ---
+---
 
 ## **Assignments**
 
@@ -221,7 +220,8 @@ After the job completes, analyze the profiling results:
   ```bash
   kernprof -o ${SLURM_JOBID}_${SLURM_CPUS_PER_TASK}.lprof -l mnist_model.py --epochs=5 --no-cuda
   ```
-
+---
+---
 
 ## **How the Conda Environment Was Created**
 
@@ -232,7 +232,6 @@ $ conda activate gujcost_workshop
 $ pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
 $ conda install line_profiler --channel conda-forge
 ```
-
 
 
 ## **Summary**
