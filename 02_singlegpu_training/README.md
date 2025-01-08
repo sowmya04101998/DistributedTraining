@@ -4,6 +4,8 @@ Optimizing your script for a single GPU is a crucial first step before scaling t
 
 ```bash
 $ ssh <hpcaiuser>@14.139.62.247 -p 4422
+$ mkdir <wk-<name>>
+$ cd <wk-<name>>
 $ git clone https://github.com/kishoryd/DistributedTraining.git
 ```
 Replace <hpcaiuser> with user account created for individual participants
@@ -27,6 +29,7 @@ $ conda activate gujcost_workshop
 Ensure the dataset is downloaded on the login node since compute nodes typically lack internet access:
 
 ```bash
+(gujcost_workshop) $ cd DistributedTraining/02_singlegpu_training
 (gujcost_workshop) $ python download_data.py
 ```
 
@@ -38,7 +41,6 @@ Ensure the dataset is downloaded on the login node since compute nodes typically
 Navigate to the directory and view the content of the training script:
 
 ```bash
-(gujcost_workshop) $ cd DistributedTraining/02_singlegpu_training
 (gujcost_workshop) $ cat mnist_model.py
 ```
 Analyze the code for a better understanding of its structure and workflow.
@@ -214,9 +216,9 @@ After the job completes, analyze the profiling results:
 
 ## **Assignments**
 
-- Adjust `--cpus-per-task` to values like 2, 4, 6, 8, or 10 analyze the time and resource utilization.
+- Adjust `--cpus-per-task` to values like 2, 4, 6, 8, or 10 analyze the time and resource utilization (`slurm_submit.sh`).
 
-- Use the following line to test performance without GPU(change inside SLURM script):
+- Use the following line to test performance without GPU(change inside SLURM script `slurm_submit.sh`):
   ```bash
   kernprof -o ${SLURM_JOBID}_${SLURM_CPUS_PER_TASK}.lprof -l mnist_model.py --epochs=5 --no-cuda
   ```
