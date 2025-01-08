@@ -16,8 +16,3 @@ This repository contains a Jupyter Notebook titled **"Introduction to Deep Learn
 
 ### Prerequisites
 - Basic programming knowledge in Python.
-
-### Dependencies
-Make sure to have the following Python libraries installed:
-
-- **PyTorch** or **TensorFlow** (depending on the examples in the notebook)
