@@ -144,7 +144,7 @@ echo "WORLD_SIZE: $WORLD_SIZE"
 echo "RANK: $RANK"
 
 # Run the script
-torchrun --nproc_per_node=2 mnist_ddpmodel.py --epochs=5 --batch-size=128
+torchrun --nproc_per_node=2 mnist_ddpmodel.py --epochs=5 --batch-size=64
 ```
 
 Submit the job:
@@ -162,52 +162,13 @@ Submit the job:
 Add profiling output to a log file to analyze execution time:
 
 ```bash
-torchrun --nproc_per_node=2 mnist_ddpmodel.py --epochs=5 --batch-size=128
+tail -f logs_<job_id>.out
 ```
 
 
 ---
----
-
-## **Assignments**
-
-#### **Objective:**
-Train a Convolutional Neural Network (CNN) on the **CIFAR-10 dataset** using PyTorch, and implement **data parallelism** to utilize multiple GPUs for faster training.
-
-
-#### **Assignment Description:**
-The goal is to build and train a CNN on the CIFAR-10 dataset using **PyTorch's DataParallel** module for multi-GPU support. The dataset consists of 60,000 32x32 color images in 10 classes, with 50,000 training images and 10,000 test images.
-
----
-
-### **Steps to Complete:**
-
-1. **Load and Preprocess the CIFAR-10 Dataset**:
-   - Use the `torchvision.datasets` library to load the CIFAR-10 dataset.
-   - Normalize the dataset using the mean and standard deviation of the CIFAR-10 dataset.
-
-2. **Define the CNN Model**:
-   - Create a CNN with at least three convolutional layers and two fully connected layers.
-   - Use activation functions, dropout, and max pooling.
-
-3. **Implement DataParallelism**:
-   - Check if multiple GPUs are available.
-   - Wrap the model using `torch.nn.DataParallel` to utilize all available GPUs.
-
-4. **Train the Model**:
-   - Train the CNN on the CIFAR-10 dataset for a specified number of epochs.
-   - Use a suitable optimizer (e.g., Adam) and learning rate scheduler.
-
-5. **Evaluate the Model**:
-   - Evaluate the model's performance on the test dataset.
-   - Calculate and display the test loss and accuracy.
-
-6. **Submit Results**:
-   - Provide the training and testing accuracy for the model.
-   - Save the trained model and submit the code with comments.
-  
----
----
+1. Adjust `--cpus-per-task` to values like 2 and 4 analyze the time and resource utilization (`slurm_submit.sh`).
+2. Adjust `--ntasks` to values based on number of gpus 1 or 2, depending on nodes running on and analyse time and resource utilization (`slurm_submit.sh`) 
 ---
 
 ### Why Move to Hybrid Models like Fully Sharded Data Parallel (FSDP)?
