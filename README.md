@@ -10,7 +10,7 @@ This repository provides a comprehensive guide and practical examples for traini
 - Foundational concepts of deep learning and PyTorch.
 - Basics of tensors, datasets, and model building.
 
-[Read the Guide](./01_introduction_to_deeplearning/)
+[Read the Guide](../01_introduction_to_deeplearning/)
 
 ---
 
@@ -18,7 +18,7 @@ This repository provides a comprehensive guide and practical examples for traini
 - Efficiently training models on a single GPU.
 - Profiling tools and techniques to optimize performance.
 
-[Read the Guide](./02_singlegpu_training/)
+[Read the Guide](../02_singlegpu_training/)
 
 ---
 
@@ -26,7 +26,7 @@ This repository provides a comprehensive guide and practical examples for traini
 - Scaling models across multiple GPUs using `torch.nn.DataParallel`.
 - Profiling and optimizing data parallel workloads.
 
-[Read the Guide](./03_multigpu_dp_training/)
+[Read the Guide](../03_multigpu_dp_training/)
 
 ---
 
@@ -34,7 +34,7 @@ This repository provides a comprehensive guide and practical examples for traini
 - Leveraging `torch.nn.parallel.DistributedDataParallel` for efficient multi-GPU training.
 - Setting up process groups, distributed samplers, and profiling DDP workloads.
 
-[Read the Guide](./04_multigpu_ddp_training/)
+[Read the Guide](../04_multigpu_ddp_training/)
 
 ---
 
