@@ -6,7 +6,7 @@ This guide extends the single-GPU training setup to a multi-GPU environment, lev
 
 ## **Step 1: Follow Single-GPU Setup**
 
-Follow the steps outlined in the [Single-GPU Training Guide](../02_singlegpu_training/) to set up the environment, clone the repository, and download the dataset. Ensure that the `gujcost_workshop` Conda environment is activated.
+Follow the steps outlined in the [Single-GPU Training Guide](../02_singlegpu_training/) to set up the environment, clone the repository, and download the dataset.
 
 ---
 
