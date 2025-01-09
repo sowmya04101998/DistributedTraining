@@ -8,7 +8,7 @@ $ mkdir <wk-<name>>
 $ cd <wk-<name>>
 $ git clone https://github.com/kishoryd/DistributedTraining.git
 ```
-Replace <hpcaiuser> with user account created for individual participants
+Replace <hpcaiuser> with user account created for participants
 ---
 
 ## **Step 1: Activate Conda Environment**
@@ -44,6 +44,7 @@ Navigate to the directory and view the content of the training script:
 (gujcost_workshop) $ cat mnist_model.py
 ```
 Analyze the code for a better understanding of its structure and workflow.
+
 
 ### Script Sections
 
@@ -216,6 +217,15 @@ After the job completes, analyze the profiling results:
 
 ## **Assignments**
 
+Note: To edit the files use nano editor in linux environment
+
+### use nano editor to edit files
+
+```bash
+(gujcost_workshop) $ nano mnist_model.py
+```
+and make changes as per assignment `ctrl + x` and type `yes` then `Enter`
+
 1. Adjust `--cpus-per-task` to values like 2, 4, 6, 8, or 10 analyze the time and resource utilization (`slurm_submit.sh`).
 
 2. Use the following line to test performance without GPU(`slurm_submit.sh`):
@@ -234,7 +244,7 @@ After the job completes, analyze the profiling results:
 
 ```bash
 $ module load miniconda
-$ conda create --name gujcost_workshop python=3.9 --yes
+$ conda create --name workshop python=3.9 --yes
 $ conda activate gujcost_workshop
 $ pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
 $ conda install line_profiler --channel conda-forge
