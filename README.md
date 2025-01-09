@@ -39,6 +39,9 @@ This repository provides a comprehensive guide and practical examples for traini
 ## **Resources**
 
 - [PyTorch Documentation](https://pytorch.org/docs/)
+- [Basics_Pytorch](https://pytorch.org/tutorials/beginner/pytorch_with_examples.html)
+- [Data_parallel](https://pytorch.org/docs/stable/generated/torch.nn.DataParallel.html)
+- [Distributed_Data_parallel](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)
 - [Hugging Face Transformers](https://huggingface.co/docs/transformers/)
 - [PyTorch FSDP Tutorial](https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html)
 
