@@ -33,7 +33,7 @@ This demo is only meant to illustrate a simple and transparent training run with
 2. **Download Models:**
    Since compute nodes may not have internet access, pre-download the models:
    ```bash
-   $ python download_models.py
+   (gujcost_workshop) $ python download_models.py
    ```
 
 3. **FSDP Wrapping:**
@@ -120,8 +120,11 @@ $ sbatch chess_finetune.sh
 - Enable with the `--gradient_checkpointing` flag to save memory.
 
 ### Performance Questions
-1. Increase `batch_size_per_device` by factors of 2 and observe the effect on time per gradient step.
+1. Increase `batch_size_per_device` by factors of 2 and observe the effect on time per gradient step and After a certain threshold, the batch size approaches the memory limits of the GPU.
 2. Add gradient checkpointing and measure training speed for various batch sizes.
+   Gradient Checkpointing Tradeoff:
+      Pros: Allows larger batch sizes and supports training larger models.
+      Cons: Introduces a slight computational overhead, increasing training time per step.
 
 ---
 
