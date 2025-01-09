@@ -208,7 +208,7 @@ This will help you observe GPU utilization and thread/process spawning during ex
 After the job completes, analyze the profiling results:
 
 ```bash
-(gujcost_workshop) $ python -m line_profiler -rmt logs_<job_id>.lprof
+(gujcost_workshop) $ python -m line_profiler -rmt <job_id>_<slurmtask>.lprof
 ```
 
 ---
