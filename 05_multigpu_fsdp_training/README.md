@@ -26,9 +26,8 @@ This demo is only meant to illustrate a simple and transparent training run with
    Install the required packages in a Conda environment:
    ```bash
    $ module load miniconda
-   $ conda create -n gujcost_workshop python=3.9 --yes
    $ conda activate gujcost_workshop
-   $ pip install torch transformers
+
    ```
 
 2. **Download Models:**
