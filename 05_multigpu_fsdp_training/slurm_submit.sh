@@ -5,6 +5,8 @@
 #SBATCH --nodes=1                     # Single node
 #SBATCH --ntasks=2                    # One task
 #SBATCH --partition=gpu		      # partition GPU
+#SBATCH --reservation=hpcai      # Reservation incase of urgent requirement
+##SBATCH --nodelist=rpgpu*        # Specify reservation GPU node name provided
 #SBATCH --cpus-per-task=10            # Number of CPU cores per task
 #SBATCH --gres=gpu:2                  # Number of GPUs
 #SBATCH --time=02:00:00               # Run time limit (HH:MM:SS)
