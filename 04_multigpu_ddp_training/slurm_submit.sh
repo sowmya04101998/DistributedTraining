@@ -4,6 +4,8 @@
 #SBATCH --ntasks=2                 # Number of tasks (one per GPU)
 #SBATCH --gres=gpu:2               # Number of GPUs on the node
 #SBATCH --cpus-per-task=1         # Number of CPU cores per task
+#SBATCH --reservation=hpcai      # Reservation incase of urgent requirement
+##SBATCH --nodelist=rpgpu*        # Specify reservation GPU node name provided
 #SBATCH --partition=gpu            # GPU partition
 #SBATCH --output=logs_%j.out       # Output log file
 #SBATCH --error=logs_%j.err        # Error log file
