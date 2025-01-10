@@ -13,7 +13,7 @@ This guide explains how to train a CNN on the MNIST dataset using PyTorch's Dist
 $ module load miniconda
 $ conda activate gujcost_workshop
 ```
-
+Follow download steps of DATA from single GPU given previously
 ---
 
 ## **Step 1: Adjustments for DDP**
@@ -113,7 +113,7 @@ Create a Slurm submission script (`slurm_submit_ddp.sh`) to configure and execut
 #SBATCH --nodes=1                  # Number of nodes
 #SBATCH --ntasks=2                 # Number of tasks (one per GPU)
 #SBATCH --gres=gpu:2               # Number of GPUs on the node
-#SBATCH --cpus-per-task=1          # Number of CPU cores per task
+#SBATCH --cpus-per-task=1         # Number of CPU cores per task
 #SBATCH --partition=gpu            # GPU partition
 #SBATCH --output=logs_%j.out       # Output log file
 #SBATCH --error=logs_%j.err        # Error log file
@@ -127,6 +127,9 @@ echo "Using GPUs: $CUDA_VISIBLE_DEVICES"
 module purge
 module load miniconda
 
+module load spack
+spack load gcc@12.3.0
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64/libstdc++.so.6
 # Activate the Conda environment
 conda activate gujcost_workshop
 
@@ -135,7 +138,9 @@ export MASTER_ADDR=localhost       # Use localhost for single node
 export MASTER_PORT=12355           # Any available port
 export WORLD_SIZE=$SLURM_NTASKS    # Total number of processes (tasks)
 export RANK=$SLURM_PROCID          # Rank of the current process
+
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
+
 
 # Log environment variables for debugging
 echo "MASTER_ADDR: $MASTER_ADDR"
@@ -143,7 +148,7 @@ echo "MASTER_PORT: $MASTER_PORT"
 echo "WORLD_SIZE: $WORLD_SIZE"
 echo "RANK: $RANK"
 
-# Run the script
+# Run the script with kernprof
 torchrun --nproc_per_node=2 mnist_ddpmodel.py --epochs=5 --batch-size=64
 ```
 
