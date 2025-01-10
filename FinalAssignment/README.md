@@ -1,4 +1,4 @@
-### Assignment: Training a CNN on the CIFAR-10 Dataset Using DataParallelism
+### Assignment: Training a CNN on the CIFAR-10 Dataset Using Distributed DataParallelism
 
 #### **Objective:**
 Train a Convolutional Neural Network (CNN) on the **CIFAR-10 dataset** using PyTorch, and implement **data parallelism** to utilize multiple GPUs for faster training.
