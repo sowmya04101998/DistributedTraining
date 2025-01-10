@@ -33,14 +33,14 @@ This demo is only meant to illustrate a simple and transparent training run with
 2. **Download Models:**
    Since compute nodes may not have internet access, pre-download the models:
    ```bash
-   (gujcost_workshop) $ python download_models.py
+   (gujcost_workshop) $ python downloadmodel.py
    ```
 
 3. **FSDP Wrapping:**
    See the script `chess.py` for implementation details on how to wrap model layers with FSDP.
 
 4. **Run Training:**
-   Submit the `chess_finetune.sh` Slurm script.
+   Submit the `slurm_submit.sh` Slurm script.
 
 ---
 
@@ -59,7 +59,7 @@ FSDP improves upon DDP by sharding model parameters and gradients, enabling the 
 
 ## **FSDP Slurm Script**
 
-Here is the Slurm script (`chess_finetune.sh`) for running FSDP training:
+Here is the Slurm script (`slurm_submit.sh`) for running FSDP training:
 
 ```bash
 #!/bin/bash -l
@@ -105,7 +105,7 @@ torchrun \
 Submit the job:
 
 ```bash
-$ sbatch chess_finetune.sh
+$ sbatch slurm_submit.sh
 ```
 
 ---
