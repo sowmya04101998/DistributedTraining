@@ -8,7 +8,6 @@ from torch.optim.lr_scheduler import StepLR
 import os
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
-from line_profiler import LineProfiler
 
 # Define the model
 class Net(nn.Module):
@@ -86,21 +85,10 @@ def main():
     optimizer = optim.Adadelta(ddp_model.parameters(), lr=args.lr)
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
 
-    # Initialize profiler for rank 0
-    profiler = None
-    if rank == 0:
-        profiler = LineProfiler()
-        profiler.add_function(train)
-        profiler.enable()
 
     for epoch in range(1, args.epochs + 1):
         train(args, ddp_model, train_loader, optimizer, epoch, rank)
         scheduler.step()
-
-    # Print profiling results (only for rank 0)
-    if rank == 0:
-        profiler.disable()
-        profiler.print_stats()
 
     cleanup()  # Cleanup DDP
 
