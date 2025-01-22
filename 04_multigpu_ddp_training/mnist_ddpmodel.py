@@ -59,7 +59,7 @@ def train(args, model, train_loader, optimizer, epoch, rank):
 
 def main():
     parser = argparse.ArgumentParser(description="PyTorch DDP MNIST Example")
-    parser.add_argument("--batch-size", type=int, default=64, help="Input batch size for training")
+    parser.add_argument("--batch-size", type=int, default=64, help="Global batch size for training")
     parser.add_argument("--test-batch-size", type=int, default=1000, help="Input batch size for testing")
     parser.add_argument("--epochs", type=int, default=14, help="Number of epochs to train")
     parser.add_argument("--lr", type=float, default=1.0, help="Learning rate")
@@ -72,26 +72,37 @@ def main():
     setup()  # Initialize DDP
     torch.cuda.set_device(rank)
 
+    # Calculate per-GPU batch size
+    world_size = dist.get_world_size()
+    per_gpu_batch_size = args.batch_size // world_size
+
+    print(f"[INFO] Global batch size: {args.batch_size}, Per-GPU batch size: {per_gpu_batch_size}")
+
+    # Dataset and DataLoader
     transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
-    train_dataset = datasets.MNIST("./data", train=True, download=False, transform=transform)
+    train_dataset = datasets.MNIST("./data", train=True, download=True, transform=transform)
 
     train_sampler = torch.utils.data.distributed.DistributedSampler(
-        train_dataset, num_replicas=dist.get_world_size(), rank=rank
+        train_dataset, num_replicas=world_size, rank=rank
     )
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, sampler=train_sampler)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=per_gpu_batch_size, sampler=train_sampler)
 
+    # Model, optimizer, and learning rate scheduler
     model = Net().to(rank)
     ddp_model = DDP(model, device_ids=[rank])
     optimizer = optim.Adadelta(ddp_model.parameters(), lr=args.lr)
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
 
-
+    # Training loop
     for epoch in range(1, args.epochs + 1):
         train(args, ddp_model, train_loader, optimizer, epoch, rank)
         scheduler.step()
+
+    # Save the model (only from rank 0)
+    if rank == 0 and args.save_model:
+        torch.save(ddp_model.state_dict(), "mnist_ddp_model.pth")
 
     cleanup()  # Cleanup DDP
 
 if __name__ == "__main__":
     main()
-
