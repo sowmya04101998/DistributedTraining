@@ -5,7 +5,7 @@ This repository contains a Jupyter Notebook titled **"Introduction to Deep Learn
 
 ## Contents
 
-### 2. Topics Covered
+### Topics Covered
 - Tensor operations.
 - Forward and backward propagation.
 - Loss functions and how they influence learning.
