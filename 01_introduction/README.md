@@ -1,7 +1,7 @@
 # Introduction to Deep Learning
 
 This repository contains a Jupyter Notebook titled **"Introduction to Deep Learning"**. It provides foundational concepts and practical examples to help understand and implement deep learning models with a specific focus on using PyTorch Tensor Cores for efficient training.
----
+
 
 ## Contents
 
