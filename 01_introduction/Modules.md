@@ -103,5 +103,5 @@ module list
 module show <package>
 ```
 
-For more details, refer to the HPC documentation.
+For more details, refer to the HPC documentation (https://lmod.readthedocs.io/en/latest/020_advanced.html).
 
