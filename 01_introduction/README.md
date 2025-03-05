@@ -46,9 +46,9 @@ To effectively use this repository, ensure you have:
 ## Running Deep Learning Jobs on SLURM
 This repository includes guides on **efficiently executing deep learning jobs on an HPC cluster using SLURM**.
 
-📌 **SLURM.md** – Full SLURM job scheduling guide.
-📌 **SLURM Cheatbook** – Quick SLURM reference.
-📌 **Modules.md** – Managing dependencies on an HPC cluster.
+ **SLURM.md** – Full SLURM job scheduling guide.
+**SLURM Cheatbook** – Quick SLURM reference.
+**Modules.md** – Managing dependencies on an HPC cluster.
 
 ### 🔹 Submitting a SLURM Job
 Submit a job using:
