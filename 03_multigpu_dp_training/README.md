@@ -1,34 +1,30 @@
-# **Multi-GPU Training**
+---
 
-This guide extends the single-GPU training setup to a multi-GPU environment, leveraging PyTorch's `DataParallel` module for parallelism across multiple GPUs. It also demonstrates how to adjust your training script and Slurm configuration for multi-GPU jobs.
+# **Multi-GPU Training with PyTorch**
+This guide extends the **single-GPU training setup** to a **multi-GPU environment**, leveraging:
+- **PyTorch’s `DataParallel` module** for training across multiple GPUs.
+- **Efficient data loading with increased `num_workers`.**
+- **Optimized Slurm job script for multi-GPU execution.**
 
 ---
 
 ## **Step 1: Follow Single-GPU Setup**
-
-Follow the steps outlined in the [Single-GPU Training Guide](../02_singlegpu_training/) to set up the environment, clone the repository, and download the dataset.
+Before proceeding, complete the setup in the **[Single-GPU Training Guide](../02_singlegpu_training/)**.
 
 ---
 
 ## **Step 2: Transition to Multi-GPU**
-
-Navigate to the multi-GPU directory:
-
+Navigate to the **multi-GPU directory**:
 ```bash
 $ cd DistributedTraining/03_multigpu_dp_training
 ```
-
-This directory contains the modified script and configurations for multi-GPU training.
+This directory contains the **modified training scripts** and **Slurm job scripts** optimized for **multi-GPU training**.
 
 ---
 
 ## **Step 3: Changes from Single-GPU to Multi-GPU Training**
-
-### Key Adjustments for Multi-GPU Support
-
-#### Enable Multi-GPU with `DataParallel`
-Ensure the model uses multiple GPUs with PyTorch’s `DataParallel`:
-
+### ** Enable Multi-GPU with `DataParallel`**
+Modify the model initialization to **automatically use multiple GPUs**:
 ```python
 # Initialize the CNN model
 model = Net()
@@ -40,27 +36,10 @@ if use_cuda and torch.cuda.device_count() > 1:
 
 model = model.to(device)  # Move model to the appropriate device
 ```
-
-#### Adjust the DataLoader
-Increase the `batch_size` to better utilize GPU memory:
-
-```python
-train_kwargs = {'batch_size': args.batch_size}
-test_kwargs = {'batch_size': args.test_batch_size}
-if use_cuda:
-    cuda_kwargs = {'num_workers': num_workers, 'pin_memory': True, 'shuffle': True}
-    train_kwargs.update(cuda_kwargs)
-    test_kwargs.update(cuda_kwargs)
-
-train_loader = torch.utils.data.DataLoader(dataset1, **train_kwargs)
-test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
-```
-
 ---
 
 ## **Step 4: Slurm Script for Multi-GPU Training**
-
-Create a Slurm submission script (`slurm_submit.sh`) to allocate multiple GPUs:
+Create a **Slurm submission script** (`slurm_submit.sh`) to allocate multiple GPUs:
 
 ```bash
 #!/bin/bash
@@ -69,8 +48,7 @@ Create a Slurm submission script (`slurm_submit.sh`) to allocate multiple GPUs:
 #SBATCH --ntasks=2                 # Number of tasks
 #SBATCH --cpus-per-task=6          # Number of CPU cores per task
 #SBATCH --partition=gpu            # GPU partition
-##SBATCH --reservation=hpcai      # Reservation incase of urgent requirement
-##SBATCH --nodelist=rpgpu*        # Specify reservation GPU node name provided
+#SBATCH --reservation=SCA          # Reservation
 #SBATCH --gres=gpu:2               # Number of GPUs (adjust as needed)
 #SBATCH --output=logs_%j.out       # Output log file
 #SBATCH --error=logs_%j.err        # Error log file
@@ -78,62 +56,79 @@ Create a Slurm submission script (`slurm_submit.sh`) to allocate multiple GPUs:
 
 # Log the node and GPUs being used
 echo "Running on host $(hostname)"
+
 echo "Using GPUs: $CUDA_VISIBLE_DEVICES"
 
 # Load required modules
 module purge
 module load miniconda
 
-# Activate the Conda environment
-conda activate gujcost_workshop
+#activate the environment
+conda activate tutorial
 
 # Run the script
-kernprof -o ${SLURM_JOBID}_${SLURM_CPUS_PER_TASK}.lprof -l mnist_multigpu.py --epochs=5
+time python mnist_multigpu.py --epochs=6 --batch-size=128
 ```
 
 Submit the job:
-
 ```bash
-(gujcost_workshop) $ sbatch slurm_submit.sh
+$ sbatch slurm_submit.sh
 ```
 
-### Monitor GPU and System Performance
-Monitor GPU utilization and system threads:
+---
 
+## **Step 5: Monitor GPU and System Performance**
+### **Check GPU Utilization**
 ```bash
 $ ssh <gpu_node>
 $ watch -n 0.1 nvidia-smi
+```
+### **Monitor CPU Utilization**
+```bash
 $ top -u <hpcusername>
 ```
 
 ---
 
-## **Step 5: Analyze Profiling Data**
+## **Step 6: Throughput Analysis (Multi-GPU Performance)**
+Compare performance for **different setups**.
 
-After the job completes, analyze the profiling results:
+| **Configuration** | **Throughput (images/sec) - 8 Threads** | **Total Time (s) - 8 Threads** |
+|------------------|---------------------------------|----------------------|
+| **Single GPU (01_mnist_model.py)** | ? | ? |
+| **Multi-GPU (mnist_multigpu.py, `DataParallel`)** | ? | ? |
 
+### **Run Experiments**
+1️⃣ **Baseline (Single GPU)**
 ```bash
-(gujcost_workshop) $ python -m line_profiler -rmt <job_id>_<slurmtask>.lprof
+python 01_mnist_model.py --epochs=5 --batch-size=128 --num-workers=8
 ```
+2️⃣ **Multi-GPU Training**
+```bash
+python mnist_multigpu.py --epochs=5 --batch-size=256
+```
+✅ **Benefit**: **Find the best-performing setup!**
 
 ---
 
 ## **Assignments**
-
-1. Adjust the `--gres=gpu` option in the Slurm script to use 1, 2 and analyze performance.
-2. Adjust `--cpus-per-task` to values like 2 whether the time and resource utilization changes(`slurm_submit.sh`).
-3. Modify the `--batch-size` to 128 and 256 to observe the impact on training speed and GPU utilization.
-4. Experiment with different optimizers like `Adam` or `SGD` to compare convergence speeds.
+1. **Test different `--gres=gpu` values (1 vs. 2 GPUs)** and analyze performance.
+2. **Modify `--cpus-per-task` (2, 4, 8) and check resource utilization**.
+3. **Change `--batch-size` to 128 and 256** to measure training speed and GPU utilization.
 
 ---
 
 ## **Summary**
+- **Multi-GPU training accelerates deep learning workloads**.
+- **Optimized `num_workers=8` improves data loading speed**.
+- **Throughput analysis helps measure performance gains**.
 
-Multi-GPU training is a powerful approach to scale deep learning workloads. By enabling `DataParallel` and profiling the training process, you can achieve significant performance improvements. Efficient resource utilization ensures faster convergence and better scalability.
+---
 
-[Go back to Single-GPU Training](../02_singlegpu_training/)
-
-### Why Data Parallel (DP) is Less Popular Compared to Distributed Data Parallel (DDP)?
-Data Parallel (DP) is less popular due to its limitations in scalability and inefficiencies when handling large-scale distributed training. DP relies on replicating the model on each GPU, which can lead to significant communication overhead and slower training speeds. In contrast, Distributed Data Parallel (DDP) minimizes inter-GPU communication overhead and ensures better resource utilization by distributing data and gradients efficiently across multiple GPUs, making it the preferred approach for modern large-scale deep learning applications.Multi-GPU training is a powerful approach to scale deep learning workloads. By enabling `DataParallel` and profiling the training process, you can achieve significant performance improvements. Efficient resource utilization ensures faster convergence and better scalability.
+## ** Why `DataParallel` vs. `Distributed Data Parallel (DDP)`?**
+- **`DataParallel` (DP) is easy to use but has limitations**.
+- **DP replicates models on each GPU, causing communication overhead**.
+- **`Distributed Data Parallel (DDP)` is preferred for large-scale training** because it minimizes **inter-GPU communication overhead**.
 
 [Proceed to Distributed Data Parallel Training](../04_multigpu_ddp_training/)
+---
