@@ -99,15 +99,15 @@ Compare performance for **different setups**.
 | **Multi-GPU (mnist_multigpu.py, `DataParallel`)** | ? | ? |
 
 ### **Run Experiments**
-1️⃣ **Baseline (Single GPU)**
+**Baseline (Single GPU)**
 ```bash
 python 01_mnist_model.py --epochs=5 --batch-size=128 --num-workers=8
 ```
-2️⃣ **Multi-GPU Training**
+**Multi-GPU Training**
 ```bash
 python mnist_multigpu.py --epochs=5 --batch-size=256
 ```
-✅ **Benefit**: **Find the best-performing setup!**
+**Benefit**: **Find the best-performing setup!**
 
 ---
 
