@@ -1,60 +1,48 @@
-# **Single-GPU Training**
+---
 
-Optimizing your script for a single GPU is a crucial first step before scaling to multiple GPUs. Inefficient single-GPU code may result in wasted resources and longer queue times when running multi-GPU jobs. This example demonstrates how to train a CNN on the MNIST dataset using a single GPU
+# **Single-GPU Training with PyTorch and DALI**
 
+Optimizing your script for a **single GPU** is a crucial first step before scaling to multiple GPUs. Inefficient single-GPU code may result in **wasted resources and longer queue times** when running multi-GPU jobs. This guide demonstrates how to train a **CNN on the MNIST dataset** using a **single GPU**, along with optimizations using **NVIDIA DALI** and **Automatic Mixed Precision (AMP)**.
 
 ---
 
-## **Step 1: Copy Data and Model from common directory**
-
+## **Step 1: Copy Data and Model from Common Directory**
 ```bash
 $ cp -r /home/apps/SCA-tutorial .
 ```
 
-## **Step 2: Inspect the training script and python code**
+---
 
-### Inspect the Training Script
-Navigate to the directory and view the content of the training script:
+## **Step 2: Inspect the Training Scripts**
+
+Navigate to the directory and view the content of the training scripts:
 
 ```bash
-$ cat mnist_model.py
+$ ls
+01_mnist_model.py  # Standard PyTorch Training
+02_mnist_dali.py   # PyTorch + NVIDIA DALI for Data Loading
+03_mnist_amp.py    # PyTorch + Automatic Mixed Precision (AMP)
 ```
-Analyze the code for a better understanding of its structure and workflow.
 
+Analyze the code to understand different approaches and optimizations.
 
-### Script Sections
+---
 
-#### Initialize Model, Optimizer, and Scheduler
+## **Step 3: Understanding the Training Script**
+
+### **Basic Training Script (`01_mnist_model.py`)**
+- **Loads the MNIST dataset**
+- **Trains a CNN model on a single GPU**
+- **Uses PyTorch's native DataLoader for data loading**
+
+#### **Initialize Model, Optimizer, and Scheduler**
 ```python
-# Initialize model, optimizer, and scheduler
 model = Net().to(device)
 optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
 scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
 ```
 
-#### Configure DataLoader with CUDA Optimization
-```python
-if use_cuda:
-    cuda_kwargs = {'num_workers': num_workers, 'pin_memory': True, 'shuffle': True}
-    train_kwargs.update(cuda_kwargs)
-    test_kwargs.update(cuda_kwargs)
-```
-
-#### Define Dataset Transformations
-```python
-transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.1307,), (0.3081,))  # Normalize MNIST images
-])
-```
-
-#### Initialize DataLoaders
-```python
-train_loader = torch.utils.data.DataLoader(dataset1, **train_kwargs)
-test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
-```
-
-#### Training Function with Profiling
+#### **Training Loop**
 ```python
 def train(args, model, device, train_loader, optimizer, epoch):
     model.train()
@@ -65,111 +53,169 @@ def train(args, model, device, train_loader, optimizer, epoch):
         loss = F.nll_loss(output, target)
         loss.backward()
         optimizer.step()
-        if batch_idx % args.log_interval == 0:
-            print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ' 
-                  f'({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}')
 ```
 
-## **Step 4: Slurm Script for Single-GPU Training**
+---
 
-Create a `slurm_submit.sh` file:
+## **Step 4: Optimized Training with NVIDIA DALI (`02_mnist_DALI.py`)**
+[**NVIDIA DALI**](https://docs.nvidia.com/deeplearning/dali/) is a highly optimized data loading and augmentation library that:
+- **Loads images directly on the GPU** to reduce CPU bottlenecks.
+- **Optimizes performance for large datasets**.
+- **Improves training throughput** by parallelizing data preprocessing.
 
+#### **DALI Pipeline for Data Loading**
+```python
+@pipeline_def
+def mnist_pipeline(data_path, batch_size):
+    files, labels = fn.readers.file(file_root=data_path, random_shuffle=True, name="Reader")
+    images = fn.decoders.image(files, device="mixed", output_type=types.GRAY)
+    images = fn.resize(images, resize_x=28, resize_y=28)
+    images = fn.crop_mirror_normalize(images, dtype=types.FLOAT, mean=[0.1307], std=[0.3081])
+    return images, labels
+```
+
+### **Key Differences from Standard PyTorch**
+- **DALI loads images on the GPU**, reducing CPU-to-GPU transfer bottlenecks.  
+- **Faster training throughput**, especially when dataset size increases.
+
+---
+
+## **Step 5: Training with Automatic Mixed Precision (AMP) (`03_mnist_AMP.py`)**
+AMP **reduces GPU memory usage and speeds up training** by:
+- **Using FP16 precision** where possible.
+- **Scaling loss to prevent underflows**.
+
+#### **Enable AMP in Training Loop**
+```python
+from torch.cuda.amp import autocast, GradScaler
+
+scaler = GradScaler()
+
+def train(args, model, device, train_loader, optimizer, epoch):
+    model.train()
+    for batch_idx, (data, target) in enumerate(train_loader):
+        data, target = data.to(device), target.to(device)
+        optimizer.zero_grad()
+        
+        with autocast():  # Enables mixed precision
+            output = model(data)
+            loss = F.nll_loss(output, target)
+
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
+```
+
+### **Key Differences from Standard PyTorch**
+✅ **Speeds up training using FP16 precision** where applicable.  
+✅ **Uses `autocast()` to automatically switch between FP16 and FP32.**  
+✅ **Prevents underflow using `GradScaler()`.**  
+
+---
+
+## **Step 6: Submitting the Training Job via SLURM**
+### **SLURM Script for Single-GPU Training (`01_slurm_submit.sh`)**
+Create a SLURM job script:
 ```bash
 #!/bin/bash
-#SBATCH --job-name=mnist_1GPU    # create a short name for your job
-#SBATCH --nodes=1                # node count
-#SBATCH --ntasks=1               # total number of tasks across all nodes
-#SBATCH --cpus-per-task=1        # cpu-cores per task (>1 if multi-threaded tasks)
-#SBATCH --partition=gpu          # Specify GPU partition for GPU Nodes
-#SBATCH --reservation=hpcai      # Reservation incase of urgent requirement
-##SBATCH --nodelist=rpgpu*        # Specify reservation GPU node name provided
-#SBATCH --gres=gpu:1             # number of gpus per node
-#SBATCH --output=logs_%j.out     # output logfile name
-#SBATCH --error=logs_%j.err      # error logfile name
-#SBATCH --time=00:10:00          # total run time limit (HH:MM:SS)
+#SBATCH --job-name=mnist_1GPU
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --partition=gpu
+#SBATCH --reservation=SCA
+#SBATCH --gres=gpu:1
+#SBATCH --output=logs_%j.out
+#SBATCH --error=logs_%j.err
+#SBATCH --time=00:10:00
 
-# which gpu node was used
-echo "Running on host of RUDRA" $(hostname)
+echo "Running on host:" $(hostname)
 
-module purge #remove unneccesary loaded modules
-
-#load the module
+module purge
 module load miniconda
 
-#activate the environment
-conda activate gujcost_workshop
+conda activate tutorial
 
-#Try both the option, See the performance
-
-kernprof -o ${SLURM_JOBID}_${SLURM_CPUS_PER_TASK}.lprof -l mnist_model.py --epochs=5
+time python 01_mnist_model.py --epochs=6
 ```
 
-Submit the job:
-
+### **Submit the job**
 ```bash
-(gujcost_workshop) $ sbatch slurm_submit.sh
+$ sbatch 01_slurm_submit.sh
 ```
 
-### Monitor GPU and System Performance
-Once allocated, monitor the GPU and system threads:
+### **Monitor GPU Usage**
 ```bash
 $ ssh <gpu_node>
 $ watch -n 0.1 nvidia-smi
 $ top -u <hpcusername>
 ```
-This will help you observe GPU utilization and thread/process spawning during execution.
+
+---
+
+## **Step 7: Analyzing Performance - Training Time and Throughput**
+To analyze **training time and throughput**, modify the SLURM job script to run different versions of the code.
 
 
-
-## **Step 5: Analyze Profiling Data**
-
-After the job completes, analyze the profiling results:
-
+### **Run Different Configurations**
+#### **1. Run without GPU**
 ```bash
-(gujcost_workshop) $ python -m line_profiler -rmt <job_id>_<slurmtask>.lprof
+python 01_mnist_model.py --epochs=5 --no-cuda
 ```
-
----
----
-
-## **Assignments**
-
-Note: To edit the files use nano editor in linux environment
-
-### use nano editor to edit files
-
+#### **2. Test with Different Batch Sizes**
 ```bash
-(gujcost_workshop) $ nano mnist_model.py
+python 01_mnist_model.py --epochs=5 --batch-size=128
+python 01_mnist_model.py --epochs=5 --batch-size=256
 ```
-and make changes as per assignment `ctrl + x` and type `yes` then `Enter`
+#### **3. Run on Multiple workers**
+Modify `01_slurm_submit.sh`:
+```bash
+#SBATCH --cpus-per-task=1
+```
+changes number of CPU cores to 4,8 and check the performance of model
 
-1. Adjust `--cpus-per-task` to values like 2, 4, 6, 8, or 10 analyze the time and resource utilization (`slurm_submit.sh`).
-
-2. Use the following line to test performance without GPU(`slurm_submit.sh`):
-  ```bash
-  kernprof -o ${SLURM_JOBID}_${SLURM_CPUS_PER_TASK}.lprof -l mnist_model.py --epochs=5 --no-cuda
-  ```
-3. Change the batchsize of dataloader to 128 and 256 see the performance(`slurm_submit.sh`):
-  ```bash
-  kernprof -o ${SLURM_JOBID}_${SLURM_CPUS_PER_TASK}.lprof -l mnist_model.py --epochs=5 --batch-size=128
-  ```
-5. Change `--ntasks=2` and set `--gres=gpu:2` see if code is runnin on multiple GPUs ?
+#### **3. Run on Multiple GPUs**
+Modify `slurm_submit.sh`:
+```bash
+#SBATCH --ntasks=2
+#SBATCH --gres=gpu:2
+```
+Check if **multi-GPU training works**.
 
 ---
----
 
-## **How the Conda Environment Was Created**
-
+## **Step 8: Setting Up the Conda Environment**
+To recreate the Conda environment:
 ```bash
 $ module load miniconda
 $ conda create --name tutorial python=3.9 --yes
 $ conda activate tutorial
 $ pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
-$ pip install --extra-index-url https://pypi.ngc.nvidia.com nvidia-dali-cuda110clear
+$ pip install --extra-index-url https://pypi.ngc.nvidia.com nvidia-dali-cuda110
 ```
 
+---
+
+## **Step 9: Results Analysis**
+| **Configuration** | **Throughput (images/sec) 8 Threads** | **Total Time (s) - 8 Threads** |
+|------------------|------------------------|----------------|
+| **Standard PyTorch** (01_mnist_model.py) | ? | ? |
+| **DALI Optimized** (02_mnist_dali.py) | ? | ? |
+| **AMP Enabled** (03_mnist_amp.py) | ? | ? |
+
+_Fill in the results after running the experiments._
+
+---
 
 ## **Summary**
+- **Standard PyTorch training is the baseline**.
+- **DALI optimizes data loading, improving training speed**.
+- **AMP reduces memory usage and accelerates training**.
+- **Throughput and total training time should be analyzed**.
+- **Efficient single-GPU training is necessary before scaling to multiple GPUs**.
 
-Optimizing single-GPU training is a critical step before scaling to multiple GPUs. Efficient code ensures reduced resource usage and shorter queue times. By profiling and addressing bottlenecks, you can achieve higher GPU utilization and better performance.
-[Go to Multi-GPU Data Parallel Training](../03_multigpu_dp_training/) for the next steps in distributed training.
+---
+## **Next Steps**
+Once you've optimized single-GPU training, proceed to **[Multi-GPU Data Parallel Training](../03_multigpu_dp_training/)**.
+
+---
