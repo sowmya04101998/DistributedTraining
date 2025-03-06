@@ -131,4 +131,3 @@ python mnist_multigpu.py --epochs=5 --batch-size=256
 - **`Distributed Data Parallel (DDP)` is preferred for large-scale training** because it minimizes **inter-GPU communication overhead**.
 
 [Proceed to Distributed Data Parallel Training](../04_multigpu_ddp_training/)
----
