@@ -100,6 +100,7 @@ def main():
     parser.add_argument('--log-interval', type=int, default=10, metavar='N', help='logging interval')
     parser.add_argument('--save-model', action='store_true', default=False, help='For Saving the current Model')
     parser.add_argument('--num-workers', type=int, default=4, help='Number of worker threads for DataLoader')
+    parser.add_argument('--dry-run', action='store_true', default=False, help='Run a single batch for debugging')
     args = parser.parse_args()
 
     use_cuda = torch.cuda.is_available()
@@ -148,3 +149,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
