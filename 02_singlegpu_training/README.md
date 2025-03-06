@@ -1,47 +1,23 @@
 # **Single-GPU Training**
 
-Optimizing your script for a single GPU is a crucial first step before scaling to multiple GPUs. Inefficient single-GPU code may result in wasted resources and longer queue times when running multi-GPU jobs. This example demonstrates how to train a CNN on the MNIST dataset using a single GPU and profile the training process for performance improvements.
+Optimizing your script for a single GPU is a crucial first step before scaling to multiple GPUs. Inefficient single-GPU code may result in wasted resources and longer queue times when running multi-GPU jobs. This example demonstrates how to train a CNN on the MNIST dataset using a single GPU
 
-```bash
-$ ssh <hpcaiuser>@14.139.62.247 -p 4422
-$ mkdir <wk-<name>>
-$ cd <wk-<name>>
-$ git clone https://github.com/kishoryd/DistributedTraining.git
-```
-Replace <hpcaiuser> with user account created for participants
+
 ---
 
-## **Step 1: Activate Conda Environment**
-
-To simplify the setup, use a pre-configured Conda environment. Follow these steps:
-
-### Setting Up Conda for Line Profiling
-This step configures the environment to use `line_profiler` for analyzing the code and to download dataset.
+## **Step 1: Copy Data and Model from common directory**
 
 ```bash
-$ module load miniconda
-$ conda activate gujcost_workshop
+$ cp -r /home/apps/SCA-tutorial .
 ```
 
-
-## **Step 2: Download the MNIST Dataset**
-
-Ensure the dataset is downloaded on the login node since compute nodes typically lack internet access:
-
-```bash
-(gujcost_workshop) $ cd DistributedTraining/02_singlegpu_training
-(gujcost_workshop) $ python download_data.py
-```
-
-
-
-## **Step 3: Inspect and Profile the Script**
+## **Step 2: Inspect the training script and python code**
 
 ### Inspect the Training Script
 Navigate to the directory and view the content of the training script:
 
 ```bash
-(gujcost_workshop) $ cat mnist_model.py
+(tutorial) $ cat mnist_model.py
 ```
 Analyze the code for a better understanding of its structure and workflow.
 
