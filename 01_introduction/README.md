@@ -11,11 +11,12 @@ This repository provides a comprehensive guide to deep learning with **PyTorch**
 ## Repository Structure
 ```
 /01_introduction/
- ├── Modules.md                  # Guide on managing modules
+ ├── 01_SLURM.md                    # SLURM job scheduling guide
+ ├── 02_Modules.md                  # Guide on managing modules
+ ├── 03_introduction_to_DeepLearning.ipynb  # Jupyter Notebook on DL basics
+ ├── 04_slurm_cheatbook.pdf         # SLURM command reference
  ├── README.md                   # Project documentation
- ├── SLURM.md                    # SLURM job scheduling guide
- ├── introduction_to_DeepLearning.ipynb  # Jupyter Notebook on DL basics
- ├── slurm_cheatbook.pdf         # SLURM command reference
+
 ```
 
 ---
