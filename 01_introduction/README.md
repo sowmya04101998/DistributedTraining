@@ -39,33 +39,9 @@ This repository provides a comprehensive guide to deep learning with **PyTorch**
 ### Prerequisites
 To effectively use this repository, ensure you have:
 - **Python basics**
-- **Familiarity with NumPy & PyTorch**
-- **Access to an HPC cluster** (if using SLURM)
+- **Familiarity with PyTorch**
 
 
-
-## Running Deep Learning Jobs on SLURM
-This repository includes guides on **efficiently executing deep learning jobs on an HPC cluster using SLURM**.
-
- **SLURM.md** – Full SLURM job scheduling guide.
-**SLURM Cheatbook** – Quick SLURM reference.
-**Modules.md** – Managing dependencies on an HPC cluster.
-
-### 🔹 Submitting a SLURM Job
-Submit a job using:
-```bash
-sbatch my_slurm_script.sh
-```
-
-Monitor job status:
-```bash
-squeue -u <your-username>
-```
-
-Cancel a job if needed:
-```bash
-scancel <job_id>
-```
 
 ---
 
