@@ -4,11 +4,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import os
+import time
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 
 # Define the CNN model
-
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
@@ -34,120 +34,117 @@ class Net(nn.Module):
         output = F.log_softmax(x, dim=1)
         return output
 
-# Training loop
-@profile  # Decorator for profiling the training process
+# Training loop with throughput measurement
 def train(args, model, device, train_loader, optimizer, epoch):
-    model.train()  # Set the model to training mode
-    for batch_idx, (data, target) in enumerate(train_loader):  # Iterate through the training batches
-        data, target = data.to(device), target.to(device)  # Move data and targets to the device
-        optimizer.zero_grad()  # Clear previous gradients
-        output = model(data)  # Forward pass
-        loss = F.nll_loss(output, target)  # Compute the negative log-likelihood loss
-        loss.backward()  # Backpropagation
-        optimizer.step()  # Update model parameters
-        if batch_idx % args.log_interval == 0:  # Print progress at specified intervals
+    model.train()
+    start_time = time.time()  # Start time measurement
+    total_samples = 0
+    total_loss = 0
+
+    for batch_idx, (data, target) in enumerate(train_loader):
+        data, target = data.to(device), target.to(device)
+        optimizer.zero_grad()
+        output = model(data)
+        loss = F.nll_loss(output, target)
+        loss.backward()
+        optimizer.step()
+
+        total_samples += len(data)
+        total_loss += loss.item()
+
+        if batch_idx % args.log_interval == 0:
             print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} '
                   f'({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}')
 
-# Testing loop
+        if args.dry_run:
+            break
+
+    elapsed_time = time.time() - start_time  # Compute total time
+    throughput = total_samples / elapsed_time if elapsed_time > 0 else 0
+    avg_loss = total_loss / len(train_loader)
+
+    print(f'Train Epoch: {epoch} | Average Loss: {avg_loss:.6f} | Throughput: {throughput:.2f} samples/sec')
+
+# Testing loop with throughput measurement
 def test(model, device, test_loader):
-    model.eval()  # Set the model to evaluation mode
+    model.eval()
     test_loss = 0
     correct = 0
-    with torch.no_grad():  # Disable gradient calculation for testing
-        for data, target in test_loader:  # Iterate through the test batches
-            data, target = data.to(device), target.to(device)  # Move data and targets to the device
-            output = model(data)  # Forward pass
-            test_loss += F.nll_loss(output, target, reduction='sum').item()  # Sum batch losses
-            pred = output.argmax(dim=1, keepdim=True)  # Get predicted classes
-            correct += pred.eq(target.view_as(pred)).sum().item()  # Count correct predictions
+    total_samples = 0
+    start_time = time.time()  # Start time measurement
 
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            test_loss += F.nll_loss(output, target, reduction='sum').item()
+            pred = output.argmax(dim=1, keepdim=True)
+            correct += pred.eq(target.view_as(pred)).sum().item()
+            total_samples += len(data)
+
+    elapsed_time = time.time() - start_time
+    throughput = total_samples / elapsed_time if elapsed_time > 0 else 0
     test_loss /= len(test_loader.dataset)
-    print(f'\nTest set: Average loss: {test_loss:.4f}, Accuracy: {correct}/{len(test_loader.dataset)} '
-          f'({100. * correct / len(test_loader.dataset):.0f}%)\n')
+
+    print(f'\nTest set: Average Loss: {test_loss:.4f}, Accuracy: {correct}/{len(test_loader.dataset)} '
+          f'({100. * correct / len(test_loader.dataset):.0f}%) | Throughput: {throughput:.2f} samples/sec\n')
 
 # Main function
 def main():
-    # Define and parse command-line arguments
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
-    parser.add_argument('--batch-size', type=int, default=64, metavar='N',  # Training batch size
-                        help='input batch size for training (default: 64)')
-    parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',  # Testing batch size
-                        help='input batch size for testing (default: 1000)')
-    parser.add_argument('--epochs', type=int, default=14, metavar='N',
-                        help='number of epochs to train (default: 14)')
-    parser.add_argument('--lr', type=float, default=1.0, metavar='LR',  
-                        help='learning rate (default: 1.0)')
-    parser.add_argument('--gamma', type=float, default=0.7, metavar='M',
-                        help='Learning rate step gamma (default: 0.7)')
-    parser.add_argument('--log-interval', type=int, default=10, metavar='N',  
-                        help='how many batches to wait before logging training status')
-    parser.add_argument('--save-model', action='store_true', default=False, 
-                        help='For Saving the current Model')
+    parser.add_argument('--batch-size', type=int, default=64, metavar='N', help='input batch size for training')
+    parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N', help='input batch size for testing')
+    parser.add_argument('--epochs', type=int, default=14, metavar='N', help='number of epochs to train')
+    parser.add_argument('--lr', type=float, default=1.0, metavar='LR', help='learning rate')
+    parser.add_argument('--gamma', type=float, default=0.7, metavar='M', help='Learning rate step gamma')
+    parser.add_argument('--log-interval', type=int, default=10, metavar='N', help='logging interval')
+    parser.add_argument('--save-model', action='store_true', default=False, help='For Saving the current Model')
+    parser.add_argument('--num-workers', type=int, default=4, help='Number of worker threads for DataLoader')
     args = parser.parse_args()
 
-    # Check for GPU availability
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    # Configure data loader settings
     train_kwargs = {'batch_size': args.batch_size}
     test_kwargs = {'batch_size': args.test_batch_size}
-    num_workers = int(os.getenv('SLURM_CPUS_PER_TASK', 1))
+    num_workers = int(os.getenv('SLURM_CPUS_PER_TASK', args.num_workers))
+
     if use_cuda:
         cuda_kwargs = {'num_workers': num_workers, 'pin_memory': True, 'shuffle': True}
         train_kwargs.update(cuda_kwargs)
         test_kwargs.update(cuda_kwargs)
 
-    # Data preprocessing: normalization and tensor conversion
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
     ])
 
-    # Load MNIST dataset
     dataset1 = datasets.MNIST('./data', train=True, download=True, transform=transform)
     dataset2 = datasets.MNIST('./data', train=False, download=True, transform=transform)
 
-    # Create data loaders
     train_loader = torch.utils.data.DataLoader(dataset1, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
 
-
-    # Try using Adam optimizer for faster convergence:
-    #optimizer = optim.Adam(model.parameters(), lr=0.001)
-
-    # Try using Exponential decay of the learning rate:
-    #scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
-
-    # Print dataset sizes
     print(f"Train set size: {len(dataset1)}")
     print(f"Test set size: {len(dataset2)}")
 
-    # Initialize the CNN model
     model = Net()
 
-    # Enable multi-GPU support using DataParallel if multiple GPUs are available
     if use_cuda and torch.cuda.device_count() > 1:
         print(f"Using {torch.cuda.device_count()} GPUs.")
         model = nn.DataParallel(model)
 
-    model = model.to(device)  # Move the model to the appropriate device (CPU/GPU)
-
-    # Define optimizer and learning rate scheduler
+    model = model.to(device)
     optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
 
-    # Training and testing loop
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch)
         test(model, device, test_loader)
-        scheduler.step()  # Update learning rate as per scheduler
+        scheduler.step()
 
-    # Save the trained model
     if args.save_model:
-        torch.save(model.state_dict(), "mnist_cnn.pt")  # Save model weights
+        torch.save(model.state_dict(), "mnist_cnn.pt")
 
 if __name__ == '__main__':
     main()
-
