@@ -8,48 +8,64 @@ This repository provides a comprehensive guide and practical examples for traini
 
 ### 01. **Introduction to Deep Learning**
 - Foundational concepts of deep learning and PyTorch.
-- Basics of tensors, datasets, and model building.
+- **HPC Environment Setup:**
+  - **Using SLURM for job scheduling**: Submitting and managing training jobs.
+  - **Loading necessary modules**: Configuring PyTorch and CUDA on an HPC cluster.
 
 ---
 
 ### 02. **Single-GPU Training**
 - Efficiently training models on a single GPU.
-- Profiling tools and techniques to optimize performance.
+- **Optimizations:**
+  - **DALI**: Efficient data loading using NVIDIA Data Loading Library.
+  - **AMP**: Automatic Mixed Precision for faster training with reduced memory consumption.
 
 ---
 
 ### 03. **Multi-GPU Training with Data Parallelism (DP)**
 - Scaling models across multiple GPUs using `torch.nn.DataParallel`.
-- Profiling and optimizing data parallel workloads.
+- **Key Considerations:**
+  - Understanding inter-GPU communication overhead.
+  - Differences between DP and DDP for better performance.
 
 ---
 
 ### 04. **Distributed Data Parallel (DDP) Training**
 - Leveraging `torch.nn.parallel.DistributedDataParallel` for efficient multi-GPU training.
-- Setting up process groups, distributed samplers, and profiling DDP workloads.
+- Setting up process groups and distributed samplers
+- **Advantages of DDP Over DP:**
+  - Lower communication overhead.
+  - Better scalability across multiple nodes.
 
 ---
 
 ### 05. **Fully Sharded Data Parallel (FSDP) Training**
 - Training large models with memory efficiency using Fully Sharded Data Parallel (FSDP).
-- Fine-tuning large-scale models like CodeLlama with gradient checkpointing and parameter sharding.
+- Fine-tuning large-scale models like **CodeLlama**.
+
+---
+
+### 06. **Containerized Training with Enroot and NGC Containers**
+- Running PyTorch training using **NVIDIA Enroot** and **NGC Containers** on HPC.
+- **Topics Covered:**
+  - Importing and running **NGC PyTorch containers** with Enroot.
+  - Running single and multi-GPU PyTorch workloads inside containers.
+  - Using **SLURM** to launch containerized PyTorch jobs on GPU clusters.
 
 ---
 
 ## **Resources**
 
 - [PyTorch Documentation](https://pytorch.org/docs/)
-- [Basics_Pytorch](https://pytorch.org/tutorials/beginner/pytorch_with_examples.html)
-- [Data_Parallel](https://pytorch.org/docs/stable/generated/torch.nn.DataParallel.html)
-- [Distributed_Data_parallel](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)
+- [PyTorch with Examples](https://pytorch.org/tutorials/beginner/pytorch_with_examples.html)
+- [Data Parallel](https://pytorch.org/docs/stable/generated/torch.nn.DataParallel.html)
+- [Distributed Data Parallel (DDP)](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)
 - [Hugging Face Transformers](https://huggingface.co/docs/transformers/)
 - [PyTorch FSDP Tutorial](https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html)
+- [NVIDIA Enroot](https://github.com/NVIDIA/enroot)
+- [NGC PyTorch Containers](https://ngc.nvidia.com/catalog/containers/nvidia:pytorch)
 
 ---
 
-
----
-## **NOTE**
-- If you are already familiar with deep learning with PyTorch, you can skip [01. Introduction to Deep Learning](./01_introduction/) and go directly to [02. Single-GPU Training](./02_singlegpu_training/).
----
-
+## **Note**
+- If you are already familiar with deep learning with PyTorchand HPC, you can skip [01. Introduction to Deep Learning](./01_introduction/) and go directly to [02. Single-GPU Training](./02_singlegpu_training/).
