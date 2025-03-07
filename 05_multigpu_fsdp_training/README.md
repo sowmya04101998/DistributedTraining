@@ -1,5 +1,3 @@
-Here is a **comprehensive and structured README.md** for your **FSDP (Fully Sharded Data Parallel) Training** setup, following the standard format from your previous guides. 🚀  
-
 ---
 
 # **Fully Sharded Data Parallel (FSDP) Training**
@@ -219,5 +217,3 @@ For more details, visit: [PyTorch FSDP Docs](https://pytorch.org/docs/stable/fsd
 [Go to Multi-GPU DDP Training](../04_multigpu_ddp_training/)
 
 ---
-
-Would you like any **additional performance tuning** steps included? 🚀
