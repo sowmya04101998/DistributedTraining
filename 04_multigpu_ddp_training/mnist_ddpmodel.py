@@ -6,6 +6,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 import os
+import time
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
@@ -44,8 +45,11 @@ def cleanup():
     dist.destroy_process_group()
 
 def train(args, model, train_loader, optimizer, epoch, rank):
-    """Training loop for one epoch."""
+    """Training loop for one epoch with throughput measurement."""
     model.train()
+    start_time = time.time()  # Start time measurement
+    total_samples = 0  # Track total samples processed
+
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(rank), target.to(rank)
         optimizer.zero_grad()
@@ -53,9 +57,18 @@ def train(args, model, train_loader, optimizer, epoch, rank):
         loss = F.nll_loss(output, target)
         loss.backward()
         optimizer.step()
+
+        total_samples += len(data)  # Count total images processed
+
         if batch_idx % args.log_interval == 0 and rank == 0:
             print(f"Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)}] "
                   f"Loss: {loss.item():.6f}")
+
+    elapsed_time = time.time() - start_time  # Compute total time
+    throughput = total_samples / elapsed_time if elapsed_time > 0 else 0
+
+    if rank == 0:  # Print throughput only from rank 0
+        print(f"Train Epoch: {epoch} | Throughput: {throughput:.2f} samples/sec")
 
 def main():
     parser = argparse.ArgumentParser(description="PyTorch DDP MNIST Example")
@@ -72,11 +85,12 @@ def main():
     setup()  # Initialize DDP
     torch.cuda.set_device(rank)
 
-    # Calculate per-GPU batch size
+    # Get world size (number of processes)
     world_size = dist.get_world_size()
-    per_gpu_batch_size = args.batch_size // world_size
+    per_gpu_batch_size = args.batch_size // world_size  # Adjust batch size per GPU
 
-    print(f"[INFO] Global batch size: {args.batch_size}, Per-GPU batch size: {per_gpu_batch_size}")
+    if rank == 0:
+        print(f"[INFO] Global batch size: {args.batch_size}, Per-GPU batch size: {per_gpu_batch_size}")
 
     # Dataset and DataLoader
     transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
@@ -99,7 +113,7 @@ def main():
         scheduler.step()
 
     # Save the model (only from rank 0)
-    if rank == 0 and args.save_model:
+    if rank == 0 and args.save-model:
         torch.save(ddp_model.state_dict(), "mnist_ddp_model.pth")
 
     cleanup()  # Cleanup DDP
