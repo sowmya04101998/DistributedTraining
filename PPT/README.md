@@ -1,1 +1,0 @@
-Presentation on Distributed Training
