@@ -1,143 +1,184 @@
-# Enroot and NGC PyTorch Containers on HPC
+# **Enroot and NGC PyTorch Containers on HPC**
 
-## Introduction
-**Enroot** is a lightweight container runtime designed for running workloads on HPC systems. It allows users to work with NVIDIA GPU Cloud (**NGC**) containers and other OCI-compliant container images efficiently. 
+## **Introduction**
+**Enroot** is a lightweight container runtime optimized for **High-Performance Computing (HPC) environments**. It allows users to efficiently run **NVIDIA GPU Cloud (NGC) containers** and other OCI-compliant images on **SLURM-based clusters**.
 
-This guide provides instructions on using Enroot to manage PyTorch containers from NGC on an HPC system.
-
----
-
-
-## Pulling and Converting NGC Containers
-
-To run an NGC PyTorch container with Enroot, you must first pull and convert it.
-
-### 1. Download the Container
-Pull the container image from NGC using **Enroot**:
-
-```bash
-enroot import docker://nvcr.io/nvidia/pytorch:23.02-py3
-```
-
-This creates a `pytorch_23.02-py3.sqsh` file.
-
-### 2. Extract the Container
-Extract the `.sqsh` image to a working directory:
-
-```bash
-enroot create -n pytorch_23.02-py3 pytorch_23.02-py3.sqsh
-```
+This guide provides step-by-step instructions to **import, configure, and run PyTorch containers** on an HPC system using Enroot.
 
 ---
 
-## Running an Enroot Container
+## **Step 1: Import and Convert NGC PyTorch Containers**
 
-### Running the Container in Interactive Mode
-To start an interactive shell inside the container:
+### **1. Download the PyTorch Container from NGC**
+Pull the latest **PyTorch 24.11** container from **NVIDIA NGC**:
 
 ```bash
-enroot start --root pytorch_23.02-py3
+enroot import docker://nvcr.io#nvidia/pytorch:24.11-py3
 ```
 
-Now you can run commands inside the container.
+Once downloaded, extract and create the container:
+
+```bash
+enroot create -n pytorch_container nvidia+pytorch+24.11-py3.sqsh
+```
+
+You can now run the container using **interactive mode** or **batch mode** via SLURM.
 
 ---
 
-## Running PyTorch Workloads
+## **Step 2: Running Enroot Containers on HPC Nodes**
 
-### Running a Script with PyTorch
-To execute a Python script inside the container:
+### **A. Running in Interactive Mode (For Debugging)**
+Since login nodes do not have GPUs, first request a **GPU node interactively**:
 
 ```bash
-enroot start --root pytorch_23.02-py3 python myscript.py
+srun --gres=gpu:1 --partition=gpu --time=00:30:00 --pty /bin/bash -i
 ```
 
-### Running the Container with GPU Support
-For GPU acceleration using CUDA, enable NVIDIA support:
+Once on a GPU node, start an **interactive container session**:
 
 ```bash
-enroot start --root --nv pytorch_23.02-py3 python myscript.py
+enroot start --mount $HOME --rw pytorch_container
 ```
 
-If using SLURM, request a GPU node before running the container:
+Now, **run PyTorch scripts inside the container**:
 
 ```bash
-srun --gpus=1 --pty bash
-module load enroot
+cd SCA-2025-DistributedTraining/02_singlegpu_training/
+python mnist_model.py --epochs=5
 ```
 
-Then start the container:
+To verify GPU availability inside the container:
 
 ```bash
-enroot start --root --nv pytorch_23.02-py3 python myscript.py
+python -c "import torch; print(torch.cuda.is_available())"
 ```
 
 ---
 
-## Running Enroot Containers as SLURM Jobs
+### **B. Running in Batch Mode with SLURM**
+For longer training runs, use **SLURM batch jobs**.
 
-Create a SLURM batch script:
-
+#### **1️⃣ SLURM Batch Script (`pytorch_enroot.sh`)**
 ```bash
-#!/usr/bin/env bash
-#SBATCH -J pytorch_test
-#SBATCH -o pytorch_test-%A.out
-#SBATCH -e pytorch_test-%A.err
-#SBATCH -p gpu
+#!/bin/bash
+#SBATCH --job-name=pytorch_job
+#SBATCH --nodes=1
 #SBATCH --gres=gpu:1
-#SBATCH -c 4
-#SBATCH -t 00:10:00
-#SBATCH -A mygroup
+#SBATCH --partition=gpu
+#SBATCH --time=2:00:00
+#SBATCH --exclusive
+#SBATCH --output=%x-%j.out
+#SBATCH --error=%x-%j.err
+#SBATCH --reservation=SCA
 
-module purge
-module load enroot
+time srun --container-image=/home/apps/enroot/nvidia+pytorch+24.11-py3.sqsh \
+          --container-name=pytorch \
+          --container-mounts=$HOME/SCA-2025-DistributedTraining/02_singlegpu_training/:/workspace \
+          sh -c 'cd /workspace && python mnist_model.py --epochs=5'
+```
 
-enroot start --root --nv pytorch_23.02-py3 python myscript.py
+#### **2️⃣ Submit the SLURM Job**
+```bash
+sbatch pytorch_enroot.sh
+```
+
+---
+
+## **Step 3: Running Multi-GPU PyTorch Workloads**
+For multi-GPU training, modify the SLURM script:
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=pytorch_multiGPU
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:2
+#SBATCH --partition=gpu
+#SBATCH --time=2:00:00
+#SBATCH --exclusive
+#SBATCH --output=%x-%j.out
+#SBATCH --error=%x-%j.err
+#SBATCH --reservation=SCA
+
+time srun --container-image=/home/apps/enroot/nvidia+pytorch+24.11-py3.sqsh \
+          --container-name=pytorch_multi \
+          --container-mounts=$HOME/SCA-2025-DistributedTraining/03_multigpu_dp_training/:/workspace \
+          sh -c 'cd /workspace && python mnist_multigpu.py --epochs=5'
 ```
 
 Submit the job:
 
 ```bash
-sbatch job_script.sh
+sbatch pytorch_multiGPU.sh
 ```
 
 ---
 
-## Interaction with the Host File System
+## **Step 4: Monitoring and Debugging**
 
-Enroot containers are sandboxed but allow file access through bind mounts.
+### **1️⃣ Check Running Jobs**
+```bash
+squeue -u $USER
+```
 
-### Default Bind Paths
-By default, Enroot mounts:
+### **2️⃣ Monitor GPU Utilization**
+```bash
+watch -n 1 nvidia-smi
+```
 
-- `/home`
-- `/scratch`
-- `/project`
-- `/tmp`
+### **3️⃣ Check SLURM Logs**
+```bash
+tail -f pytorch_job-<job_id>.out
+```
 
-Changes inside these directories persist outside the container.
+---
 
-### Custom Bind Paths
-To add custom bind paths, use the `--mount` option:
+## **Step 5: Performance Optimization**
+### **1️⃣ Adjusting CPU and GPU Settings**
+Use **OMP_NUM_THREADS** for optimal CPU performance:
 
 ```bash
-enroot start --root --nv --mount /mydir:/containerdir pytorch_23.02-py3
+export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 ```
 
-Example:
+### **2️⃣ Enabling Mixed Precision (AMP)**
+Modify your PyTorch script to **enable AMP for faster training**:
+
+```python
+from torch.cuda.amp import autocast, GradScaler
+
+scaler = GradScaler()
+with autocast():
+    output = model(input)
+    loss = loss_fn(output, target)
+
+scaler.scale(loss).backward()
+scaler.step(optimizer)
+scaler.update()
+```
+
+### **3️⃣ Using Larger Batch Sizes with Gradient Accumulation**
+For memory efficiency, adjust:
 
 ```bash
-enroot start --root --nv --mount /data:/workspace pytorch_23.02-py3
+torchrun --nproc_per_node=2 mnist_model.py --batch_size_per_device 32 --gradient_accumulation_steps 4
 ```
 
 ---
 
-## Conclusion
-Using Enroot with NGC PyTorch containers enables efficient AI and deep learning workloads on HPC systems. This guide covers installation, container execution, GPU support, SLURM integration, and file system interactions. For further customization, refer to the Enroot documentation.
+## **Step 6: Assignments**
+1. **Change `--gres=gpu:1` to `--gres=gpu:2`** and analyze training time.
+2. **Modify `--batch-size` to 128 or 256** and compare performance.
+3. **Enable gradient accumulation (`--gradient_accumulation_steps=4`)** and observe memory efficiency.
+4. **Use `torchrun` with `nproc_per_node=2`** for distributed training.
 
 ---
 
-## Additional Resources
+## **Summary**
+**Enroot provides an efficient, containerized PyTorch environment** for HPC systems.  
+**Supports GPU acceleration, multi-node execution, and SLURM integration**.  
+**Performance optimizations like AMP and gradient accumulation can significantly improve efficiency**.  
+
+For more details, visit:
 - [NGC PyTorch Containers](https://ngc.nvidia.com/catalog/containers/nvidia:pytorch)
 - [Enroot Documentation](https://github.com/NVIDIA/enroot)
-
