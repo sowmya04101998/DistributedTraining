@@ -1,20 +1,20 @@
 #!/bin/bash
-#SBATCH --job-name=mnist_multi     # Job name
-#SBATCH --nodes=2                  # Number of nodes
-#SBATCH --ntasks-per-node=1      # Number of tasks (one per GPU per node)
-#SBATCH --gres=gpu:2               # Number of GPUs on each node
-#SBATCH --cpus-per-task=10          # Number of CPU cores per task
-#SBATCH --partition=gpu            # GPU partition
-#SBATCH --output=logs_%j.out       # Output log file
-#SBATCH --error=logs_%j.err        # Error log file
-#SBATCH --time=00:20:00            # Time limit
+#SBATCH --job-name=mnist_multinode     # Job name
+#SBATCH --nodes=2                      # Number of nodes
+#SBATCH --ntasks-per-node=1            # Number of tasks (one per GPU per node)
+#SBATCH --gres=gpu:2                   # Number of GPUs on each node
+#SBATCH --cpus-per-task=10             # Number of CPU cores per task
+#SBATCH --partition=gpu                # GPU partition
+#SBATCH --output=logs_%j.out           # Output log file
+#SBATCH --error=logs_%j.err            # Error log file
+#SBATCH --time=00:20:00                # Time limit
 #SBATCH --reservation=SCA
+
 # Define variables for distributed setup
 nodes_array=($(scontrol show hostnames $SLURM_JOB_NODELIST))
 head_node=${nodes_array[0]}
 head_node_ip=$(srun --nodes=1 --ntasks=1 -w "$head_node" hostname --ip-address)
 
-echo "Head node IP: $head_node_ip"
 # Set environment variables for PyTorch distributed training
 export MASTER_ADDR=$head_node_ip   # Set the master node IP address
 export MASTER_PORT=29900           # Any available port
@@ -30,7 +30,9 @@ echo "WORLD_SIZE: $WORLD_SIZE"
 echo "RANK: $RANK"
 
 # Load required modules and activate Conda environment
-source /home/apps/miniconda3/bin/activate
+module purge
+
+module load miniconda
 
 conda activate tutorial
 
