@@ -192,6 +192,7 @@ $ conda create --name tutorial python=3.9 --yes
 $ conda activate tutorial
 $ pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
 $ pip install --extra-index-url https://pypi.ngc.nvidia.com nvidia-dali-cuda110
+$ pip install transformers
 ```
 
 ---
