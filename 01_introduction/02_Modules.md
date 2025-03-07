@@ -3,8 +3,6 @@
 ## Overview
 The Lmod modules system on the HPC system enables users to easily set their environments for selected software and to choose versions if appropriate.
 
-The Lmod system is hierarchical; not every module is available in every environment. We provide a core environment that contains most of the software installed by Research Computing staff, but software that requires a compiler or MPI is not in that environment, and a compiler must first be loaded.
-
 ---
 
 ## Basic Commands
@@ -14,9 +12,6 @@ The Lmod system is hierarchical; not every module is available in every environm
 module avail
 ```
 
-### List modules in a specific category
-```bash
-module key <category>
 ```
 ### Load the environment for a specific package
 ```bash
@@ -95,12 +90,6 @@ module load openmpi/3.1.4
 Save it as `modules.sh` and run:
 ```bash
 source modules.sh
-```
-
-### Check Dependency Conflicts
-```bash
-module list
-module show <package>
 ```
 
 For more details, refer to the HPC documentation (https://lmod.readthedocs.io/en/latest/020_advanced.html).
