@@ -6,24 +6,6 @@ This guide explains how to train a **CodeLlama** model on chess data using **PyT
 FSDP **efficiently shards model parameters, gradients, and optimizer states** across GPUs, **reducing memory usage and improving scalability** compared to Data Parallel (DP) and Distributed Data Parallel (DDP).
 
 ---
-
-## **Prerequisites**
-
-1. Follow the steps in the **[Single-GPU Training Guide](../02_singlegpu_training/)** to set up your environment and repository.
-2. Ensure the `tutorial` Conda environment is activated:
-
-   ```bash
-   $ module load miniconda
-   $ conda activate tutorial
-   ```
-
-3. **Ensure GPU availability** using:
-   ```bash
-   nvidia-smi
-   ```
-
-4. **Follow the Single-GPU guide to download the dataset** before running multi-GPU training.
-
 ---
 
 ## **Step 1: Key Changes for FSDP**
