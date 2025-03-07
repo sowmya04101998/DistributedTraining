@@ -184,7 +184,3 @@ python my_script.py
 ### Official Documentation
 - [Slurm User Guide](https://slurm.schedmd.com/quickstart.html)
 - [Slurm Commands Summary](https://slurm.schedmd.com/pdfs/summary.pdf)
-
-### Community Resources
-- [Slurm User Community](https://slurm.schedmd.com/community.html)
-- [Slurm Knowledge Base](https://slurm.schedmd.com/kb.html)
