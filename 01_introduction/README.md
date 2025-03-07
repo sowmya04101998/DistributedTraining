@@ -1,7 +1,7 @@
 # High-Performance Deep Learning with SLURM
 
 ## Overview
-This repository provides a comprehensive guide to deep learning with **PyTorch**, along with best practices for running workloads on an **HPC cluster using SLURM**. It includes:
+This repository provides a guide to deep learning with **PyTorch**, along with best practices for running workloads on an **HPC cluster using SLURM**. It includes:
 - **Deep Learning Basics**: Jupyter notebooks covering foundational concepts.
 - **SLURM Job Scheduling**: Guides and scripts for distributed training.
 - **Module Management**: Best practices for handling dependencies on HPC clusters.
@@ -41,14 +41,9 @@ To effectively use this repository, ensure you have:
 - **Python basics**
 - **Familiarity with PyTorch**
 
-
-
 ---
 
 ## Additional Resources
 📚 [PyTorch Documentation](https://pytorch.org/docs/stable/index.html)
 📚 [SLURM Official Guide](https://slurm.schedmd.com/documentation.html)
 📚 [Deep Learning Book by Ian Goodfellow](https://www.deeplearningbook.org/)
-
-For questions or contributions, feel free to **open an issue** or **submit a pull request**.
-
