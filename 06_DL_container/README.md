@@ -7,24 +7,6 @@ This guide provides instructions on using Enroot to manage PyTorch containers fr
 
 ---
 
-## Setting Up Enroot
-
-Enroot is available as a module. To load it, use:
-
-```bash
-module load enroot
-```
-
-Pre-prepared Enroot container images for common applications can be found via:
-
-```bash
-module avail
-module spider
-```
-
-To use a prebuilt container, copy it to your working directory as per the on-screen instructions.
-
----
 
 ## Pulling and Converting NGC Containers
 
