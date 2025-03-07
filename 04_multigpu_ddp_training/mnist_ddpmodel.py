@@ -10,7 +10,7 @@ import time
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-# Define the model
+# Define the CNN model
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
@@ -33,24 +33,22 @@ class Net(nn.Module):
         x = F.relu(x)
         x = self.dropout2(x)
         x = self.fc2(x)
-        output = F.log_softmax(x, dim=1)
-        return output
+        return F.log_softmax(x, dim=1)
 
+# Setup DDP
 def setup():
-    """Initialize the process group for DDP."""
     dist.init_process_group("nccl", init_method="env://")
 
 def cleanup():
-    """Destroy the process group after training."""
     dist.destroy_process_group()
 
+# ✅ Simplified Training Function
 def train(args, model, train_loader, optimizer, epoch, rank):
-    """Training loop for one epoch with throughput measurement."""
     model.train()
-    start_time = time.time()  # Start time measurement
-    total_samples = 0  # Track total samples processed
+    start_time = time.time()
+    total_loss, total_samples = 0, 0
 
-    for batch_idx, (data, target) in enumerate(train_loader):
+    for data, target in train_loader:
         data, target = data.to(rank), target.to(rank)
         optimizer.zero_grad()
         output = model(data)
@@ -58,18 +56,41 @@ def train(args, model, train_loader, optimizer, epoch, rank):
         loss.backward()
         optimizer.step()
 
-        total_samples += len(data)  # Count total images processed
+        total_loss += loss.item() * data.size(0)
+        total_samples += data.size(0)
 
-        if batch_idx % args.log_interval == 0 and rank == 0:
-            print(f"Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)}] "
-                  f"Loss: {loss.item():.6f}")
+    elapsed_time = time.time() - start_time
+    avg_loss = total_loss / total_samples
+    throughput = total_samples / elapsed_time
 
-    elapsed_time = time.time() - start_time  # Compute total time
-    throughput = total_samples / elapsed_time if elapsed_time > 0 else 0
+    if rank == 0:  # ✅ Ensure only rank 0 prints the log
+        print(f"Train Epoch: {epoch} | Average Loss: {avg_loss:.6f} | Throughput: {throughput:.2f} samples/sec")
 
-    if rank == 0:  # Print throughput only from rank 0
-        print(f"Train Epoch: {epoch} | Throughput: {throughput:.2f} samples/sec")
+# ✅ Simplified Testing Function
+def test(model, test_loader, rank):
+    model.eval()
+    start_time = time.time()
+    test_loss, correct, total_samples = 0, 0, 0
 
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(rank), target.to(rank)
+            output = model(data)
+            test_loss += F.nll_loss(output, target, reduction="sum").item()
+            pred = output.argmax(dim=1, keepdim=True)
+            correct += pred.eq(target.view_as(pred)).sum().item()
+            total_samples += data.size(0)
+
+    elapsed_time = time.time() - start_time
+    avg_loss = test_loss / total_samples
+    accuracy = 100. * correct / total_samples
+    throughput = total_samples / elapsed_time
+
+    if rank == 0:  # ✅ Ensure only rank 0 prints the log
+        print(f"Test set: Average Loss: {avg_loss:.4f}, Accuracy: {correct}/{total_samples} ({accuracy:.2f}%) "
+              f"| Throughput: {throughput:.2f} samples/sec")
+
+# Main function
 def main():
     parser = argparse.ArgumentParser(description="PyTorch DDP MNIST Example")
     parser.add_argument("--batch-size", type=int, default=64, help="Global batch size for training")
@@ -77,46 +98,43 @@ def main():
     parser.add_argument("--epochs", type=int, default=14, help="Number of epochs to train")
     parser.add_argument("--lr", type=float, default=1.0, help="Learning rate")
     parser.add_argument("--gamma", type=float, default=0.7, help="Learning rate step gamma")
-    parser.add_argument("--log-interval", type=int, default=10, help="Batches to log training status")
     parser.add_argument("--save-model", action="store_true", help="Save the trained model")
     args = parser.parse_args()
 
-    rank = int(os.environ["LOCAL_RANK"])  # Rank of the process
-    setup()  # Initialize DDP
+    rank = int(os.environ["LOCAL_RANK"])
+    setup()
     torch.cuda.set_device(rank)
 
-    # Get world size (number of processes)
     world_size = dist.get_world_size()
-    per_gpu_batch_size = args.batch_size // world_size  # Adjust batch size per GPU
+    per_gpu_batch_size = args.batch_size // world_size
 
     if rank == 0:
         print(f"[INFO] Global batch size: {args.batch_size}, Per-GPU batch size: {per_gpu_batch_size}")
 
-    # Dataset and DataLoader
     transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
     train_dataset = datasets.MNIST("./data", train=True, download=True, transform=transform)
+    test_dataset = datasets.MNIST("./data", train=False, download=True, transform=transform)
 
-    train_sampler = torch.utils.data.distributed.DistributedSampler(
-        train_dataset, num_replicas=world_size, rank=rank
-    )
+    train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset, num_replicas=world_size, rank=rank)
+    test_sampler = torch.utils.data.distributed.DistributedSampler(test_dataset, num_replicas=world_size, rank=rank)
+
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=per_gpu_batch_size, sampler=train_sampler)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.test_batch_size, sampler=test_sampler)
 
-    # Model, optimizer, and learning rate scheduler
     model = Net().to(rank)
     ddp_model = DDP(model, device_ids=[rank])
     optimizer = optim.Adadelta(ddp_model.parameters(), lr=args.lr)
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
 
-    # Training loop
     for epoch in range(1, args.epochs + 1):
         train(args, ddp_model, train_loader, optimizer, epoch, rank)
+        test(ddp_model, test_loader, rank)
         scheduler.step()
 
-    # Save the model (only from rank 0)
-    if rank == 0 and args.save-model:
+    if rank == 0 and args.save_model:
         torch.save(ddp_model.state_dict(), "mnist_ddp_model.pth")
 
-    cleanup()  # Cleanup DDP
+    cleanup()
 
 if __name__ == "__main__":
     main()
