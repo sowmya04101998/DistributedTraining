@@ -1,138 +1,223 @@
-# **Training with Model Parallelism via Fully Sharded Data Parallel (FSDP)**
-
-This guide provides an overview and example for training using Fully Sharded Data Parallel (FSDP), which enables efficient memory utilization and scalability for large models.
+Here is a **comprehensive and structured README.md** for your **FSDP (Fully Sharded Data Parallel) Training** setup, following the standard format from your previous guides. 🚀  
 
 ---
 
-## **Background**
+# **Fully Sharded Data Parallel (FSDP) Training**
 
-FSDP shreds both model parameters and optimizer states across GPUs, reducing memory overhead and improving performance. For more background, refer to:
-
-- [PyTorch FSDP Tutorial](https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html)
-- [Everything about Distributed Training and Efficient Finetuning](https://sumanthrh.com/post/distributed-and-efficient-finetuning/)
-- [Hugging Face FSDP Documentation](https://huggingface.co/docs/accelerate/usage_guides/fsdp)
+This guide explains how to train a **CodeLlama** model on chess data using **PyTorch's Fully Sharded Data Parallel (FSDP)** framework.  
+FSDP **efficiently shards model parameters, gradients, and optimizer states** across GPUs, **reducing memory usage and improving scalability** compared to Data Parallel (DP) and Distributed Data Parallel (DDP).
 
 ---
 
-## **FSDP Training Example**
+## **Prerequisites**
 
-In this example, we fine-tune a [CodeLlama-7b](https://huggingface.co/codellama/CodeLlama-7b-hf) model on a dataset of [chess moves](https://huggingface.co/datasets/laion/strategic_game_chess).
+1. Follow the steps in the **[Single-GPU Training Guide](../02_singlegpu_training/)** to set up your environment and repository.
+2. Ensure the `tutorial` Conda environment is activated:
 
-This demo is only meant to illustrate a simple and transparent training run with FSDP, and should not be used as a deep-learning training script. We intentially omit common features such as model checkpoints, evaluation, etc. Most pytorch training libraries support FSDP out-of-the-box.
-
-### Steps:
-
-1. **Environment Setup:**
-   Install the required packages in a Conda environment:
    ```bash
    $ module load miniconda
-   $ conda activate gujcost_workshop
-
+   $ conda activate tutorial
    ```
 
-2. **Download Models:**
-   Since compute nodes may not have internet access, pre-download the models:
+3. **Ensure GPU availability** using:
    ```bash
-   (gujcost_workshop) $ python downloadmodel.py
+   nvidia-smi
    ```
 
-3. **FSDP Wrapping:**
-   See the script `chess.py` for implementation details on how to wrap model layers with FSDP.
-
-4. **Run Training:**
-   Submit the `slurm_submit.sh` Slurm script.
+4. **Follow the Single-GPU guide to download the dataset** before running multi-GPU training.
 
 ---
 
-## **Comparison: DDP vs. FSDP**
+## **Step 1: Key Changes for FSDP**
 
-| Feature                        | Distributed Data Parallel (DDP) | Fully Sharded Data Parallel (FSDP) |
-|-------------------------------|----------------------------------|------------------------------------|
-| **Memory Usage**               | Higher                          | Optimized with sharding           |
-| **Model Scalability**          | Limited to GPU memory           | Suitable for large-scale models   |
-| **Parameter Sharding**         | No                              | Yes                                |
-| **Gradient Accumulation**      | Standard                        | Optimized                         |
-
-FSDP improves upon DDP by sharding model parameters and gradients, enabling the training of much larger models.
+### **1️⃣ Why Use FSDP Instead of DDP?**
+| Feature            | Data Parallel (DP) | Distributed Data Parallel (DDP) | Fully Sharded Data Parallel (FSDP) |
+|--------------------|-------------------|---------------------------------|------------------------------------|
+| **Memory Usage**   | High              | Medium                          | Low (Parameters, Gradients, and Optimizer are sharded) |
+| **Scalability**    | Limited           | Good                            | Excellent (Better for Large Models) |
+| **Communication Overhead** | High | Medium | Low (Reduces GPU Memory Communication) |
+| **Best For**       | Small Models      | Medium-Sized Models             | Large Models (e.g., CodeLlama, GPT) |
 
 ---
 
-## **FSDP Slurm Script**
+## **Step 2: Training Script for FSDP**
 
-Here is the Slurm script (`slurm_submit.sh`) for running FSDP training:
+The FSDP training script (`fsdp_finetune.py`) includes all necessary configurations.  
+Key sections include:
+
+### **1️⃣ Initialize Distributed Training**
+```python
+torch.distributed.init_process_group(backend="nccl")
+torch.cuda.set_device(torch.distributed.get_rank())
+device = torch.cuda.current_device()
+```
+
+### **2️⃣ Fully Sharded Data Parallel (FSDP)**
+```python
+from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+
+# Wrap model with FSDP
+model = FSDP(model, device_id=device)
+```
+
+### **3️⃣ Optional: Use Layer-Wise Sharding Policy**
+```python
+from torch.distributed.fsdp.wrap import lambda_auto_wrap_policy
+import functools
+
+def layer_policy_fn(module):
+    return "layer" in module.__class__.__name__.lower()
+
+auto_wrap_policy = functools.partial(lambda_auto_wrap_policy, lambda_fn=layer_policy_fn)
+
+# Apply policy while wrapping model
+model = FSDP(model, device_id=device, auto_wrap_policy=auto_wrap_policy)
+```
+
+### **4️⃣ Gradient Accumulation & Mixed Precision**
+```python
+from torch.cuda.amp import autocast, GradScaler
+
+scaler = GradScaler()
+with autocast(dtype=torch.bfloat16):
+    outputs = model(**batch, use_cache=False)
+    loss = outputs.loss / args.gradient_accumulation_steps
+```
+
+---
+
+## **Step 3: FSDP Slurm Batch Script**
+
+Create a Slurm submission script (`slurm_submit_fsdp.sh`) to configure and execute the FSDP script:
 
 ```bash
 #!/bin/bash -l
-#SBATCH --job-name=finetune_job       # Job name
-#SBATCH --output=%x-%j.out            # File to write stdout
-#SBATCH --error=%x-%j.err             # File to write stderr
-#SBATCH --nodes=1                     # Single node
-#SBATCH --ntasks=2                    # One task per GPU
-#SBATCH --partition=gpu               # Partition for GPUs
-#SBATCH --cpus-per-task=10            # Number of CPU cores per task
-#SBATCH --gres=gpu:2                  # Number of GPUs
-#SBATCH --time=02:00:00               # Run time limit (HH:MM:SS)
 
-# Load required modules
+#SBATCH --job-name=FSDP_finetune  
+#SBATCH --output=%x-%j.out             
+#SBATCH --error=%x-%j.err              
+#SBATCH --nodes=1                      
+#SBATCH --ntasks=2                     
+#SBATCH --cpus-per-task=10             
+#SBATCH --gres=gpu:2                   
+#SBATCH --time=04:00:00                
+#SBATCH --partition=gpu                
+#SBATCH --reservation=SCA              
+
+# Load Environment
 module purge
 module load miniconda
+conda activate tutorial  
 
-# Activate the Conda environment
-conda activate gujcost_workshop
+# Set Training Parameters
+export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 
-# Batch size configuration
-TOTAL_BATCH_SIZE=8
-BATCH_SIZE_PER_DEVICE=4
-NUM_GPUS=$(echo $CUDA_VISIBLE_DEVICES | awk -F ',' '{print NF}')
-GRADIENT_ACCUMULATION_STEPS=$((TOTAL_BATCH_SIZE / BATCH_SIZE_PER_DEVICE / NUM_GPUS))
+total_batch_size=${TOTAL_BATCH_SIZE:-8}
+batch_size_per_device=${BATCH_SIZE_PER_DEVICE:-4}
+num_gpus=$(echo $CUDA_VISIBLE_DEVICES | awk -F ',' '{print NF}')
+gradient_accumulation_steps=$(( total_batch_size / batch_size_per_device / num_gpus ))
 
-# Log configurations
-echo "Using $NUM_GPUS GPUs"
-echo "Total batch size: $TOTAL_BATCH_SIZE"
-echo "Batch size per device: $BATCH_SIZE_PER_DEVICE"
-echo "Gradient accumulation steps: $GRADIENT_ACCUMULATION_STEPS"
+# Debugging Information
+echo "------------------------"
+echo "Training Configuration:"
+echo "Using $num_gpus GPUs"
+echo "Total batch size: $total_batch_size"
+echo "Batch size per device: $batch_size_per_device"
+echo "Gradient accumulation steps: $gradient_accumulation_steps"
+echo "------------------------"
 
-# Run the training script
+# Launch Distributed Training
 torchrun \
     --nnodes=1 \
-    --nproc-per-node=$NUM_GPUS \
-    chess.py \
-        --batch_size_per_device $BATCH_SIZE_PER_DEVICE \
-        --gradient_accumulation_steps $GRADIENT_ACCUMULATION_STEPS \
+    --nproc-per-node=$num_gpus \
+    fsdp_finetune.py \
+        --batch_size_per_device $batch_size_per_device \
+        --gradient_accumulation_steps $gradient_accumulation_steps \
         "$@"
 ```
 
 Submit the job:
-
 ```bash
-$ sbatch slurm_submit.sh
+sbatch slurm_submit_fsdp.sh
 ```
 
 ---
 
-## **FSDP Tuning Tips**
+## **Step 4: Monitor and Analyze Performance**
 
-### Batch Sizes
-- `batch_size_per_device`: Sequences processed in one pass per GPU.
-- Total optimization batch size: `batch_size_per_device * num_gpus * gradient_accumulation_steps`.
+### **Check Logs**
+Monitor logs in real-time:
+```bash
+tail -f FSDP_finetune-<job_id>.out
+```
 
-### Gradient Checkpointing
-- Enable with the `--gradient_checkpointing` flag to save memory.
+### **Check GPU Utilization**
+Monitor GPU utilization:
+```bash
+nvidia-smi
+```
 
-### Performance Questions
-1. Increase `batch_size_per_device` by factors of 2 and observe the effect on time per gradient step and After a certain threshold, the batch size approaches the memory limits of the GPU.
-2. Add gradient checkpointing and measure training speed for various batch sizes.
-   Gradient Checkpointing Tradeoff:
-      Pros: Allows larger batch sizes and supports training larger models.
-      Cons: Introduces a slight computational overhead, increasing training time per step.
+Monitor system resources:
+```bash
+top -u $USER
+```
+
+---
+
+## **Step 5: Performance Considerations**
+### **1️⃣ Optimize CPU Utilization**
+Ensure **OMP_NUM_THREADS** is correctly set:
+```bash
+export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
+```
+
+### **2️⃣ Adjust Batch Sizes and Gradient Accumulation**
+| GPUs | Batch Size Per Device | Total Batch Size | Gradient Accumulation Steps |
+|------|----------------------|-----------------|--------------------------|
+| 2    | 4                    | 8               | 1                        |
+| 4    | 8                    | 32              | 2                        |
+| 8    | 16                   | 128             | 4                        |
+
+Modify in `slurm_submit_fsdp.sh`:
+```bash
+total_batch_size=32
+batch_size_per_device=8
+gradient_accumulation_steps=$(( total_batch_size / batch_size_per_device / num_gpus ))
+```
+
+### **3️⃣ Use Gradient Checkpointing**
+Enable it via:
+```python
+model.gradient_checkpointing_enable()
+```
+Run with:
+```bash
+fsdp_finetune.py --gradient_checkpointing
+```
+
+---
+
+## **Step 6: Assignments**
+1. Change `--cpus-per-task` in `slurm_submit_fsdp.sh` to 4 or 8 and analyze performance.
+2. Adjust `--batch_size_per_device` to **4, 8, 16** and check training speed.
+3. Compare training time between **DDP vs. FSDP** by running:
+   ```bash
+   fsdp_finetune.py --no_fsdp
+   ```
+4. Use `gradient_checkpointing` and observe memory savings.
 
 ---
 
 ## **Summary**
+- **FSDP reduces memory usage** and **improves efficiency** for large models.
+- **Batch size and gradient accumulation** tuning is crucial.
+- **Gradient checkpointing can further optimize memory usage**.
+- **FSDP scales better than DDP for large-scale models**.
 
-FSDP enables efficient training of large models by sharding parameters and gradients across GPUs. It outperforms DDP in scalability and memory optimization.
+For more details, visit: [PyTorch FSDP Docs](https://pytorch.org/docs/stable/fsdp.html)
 
-[Return to Single-GPU Training Guide](../02_singlegpu_training/)
+[Go to Multi-GPU DDP Training](../04_multigpu_ddp_training/)
 
-[Go to Distributed Data Parallel (DDP) Training Guide](../04_multigpu_ddp_training/)
+---
 
+Would you like any **additional performance tuning** steps included? 🚀
