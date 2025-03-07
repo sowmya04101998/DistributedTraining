@@ -109,10 +109,6 @@ squeue
 ``` 
 View all running and pending jobs.
 
-```bash
-sacct -j <job_id>
-``` 
-View job accounting details.
 
 ### Resource Management
 ```bash
@@ -134,7 +130,7 @@ Unload all loaded modules.
 
 ## Writing Slurm Job Scripts
 
-### Basic Serial Job
+### Basic Sample Script
 ```bash
 #!/bin/bash
 #SBATCH --job-name=serialJob
@@ -144,7 +140,7 @@ Unload all loaded modules.
 #SBATCH --output=serialJob.%j.out
 #SBATCH --error=serialJob.%j.err
 
-module load python
+module load miniconda3
 python my_script.py
 ```
 
@@ -159,8 +155,8 @@ python my_script.py
 #SBATCH --time=0-00:30:00
 #SBATCH --output=gpu-job.%j.out
 
-module load cuda
-./gpu_program
+module load miniconda3
+python my_script.py
 ```
 
 ---
@@ -177,15 +173,9 @@ module load cuda
    - Check output/error logs (`.out` and `.err` files).
    - Ensure all required modules and software are loaded.
 
-3. **Resource Allocation Issues:**
-   - Use `scontrol show job <job_id>` to check what was allocated.
-   - Verify that your requested resources match partition limits.
-
-4. **Application-Specific Problems:**
+3. **Application-Specific Problems:**
    - Debug your script locally before submitting.
    - Use interactive jobs (`srun --pty /bin/bash`) for debugging.
-
-For further help, contact your HPC support team.
 
 ---
 
@@ -198,6 +188,3 @@ For further help, contact your HPC support team.
 ### Community Resources
 - [Slurm User Community](https://slurm.schedmd.com/community.html)
 - [Slurm Knowledge Base](https://slurm.schedmd.com/kb.html)
-
-For further assistance, submit a ticket to your HPC support team.
-
