@@ -7,7 +7,7 @@ This guide provides instructions on using Enroot to manage PyTorch containers fr
 
 ---
 
-## Setting Up Enroot on UVA HPC
+## Setting Up Enroot
 
 Enroot is available as a module. To load it, use:
 
