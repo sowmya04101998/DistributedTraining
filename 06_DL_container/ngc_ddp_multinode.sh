@@ -41,4 +41,4 @@ time srun --container-image=/home/apps/enroot/nvidia+pytorch+24.11-py3.sqsh \
     --rdzv-id=10 \
     --rdzv-backend=c10d \
     --rdzv-endpoint=$MASTER_ADDR:29500 \
-    mnist_ddpmodel.py --epochs=5 --batch-size=128'
+    03_mnist_ddp.py --epochs=10 --batch-size=128'
