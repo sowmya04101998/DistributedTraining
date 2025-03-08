@@ -9,6 +9,10 @@ Optimizing your script for a **single GPU** is a crucial first step before scali
 ```bash
 $ cp -r /home/apps/SCA-tutorial .
 ```
+Navigate to the **single-GPU directory**:
+```bash
+$ cd DistributedTraining/02_singlegpu_training
+```
 
 ---
 
