@@ -107,9 +107,9 @@ def train(args, model, device, train_loader, optimizer, epoch):
 ```
 
 ### **Key Differences from Standard PyTorch**
-✅ **Speeds up training using FP16 precision** where applicable.  
-✅ **Uses `autocast()` to automatically switch between FP16 and FP32.**  
-✅ **Prevents underflow using `GradScaler()`.**  
+1. **Speeds up training using FP16 precision** where applicable.  
+2.  **Uses `autocast()` to automatically switch between FP16 and FP32.**  
+3. **Prevents underflow using `GradScaler()`.**  
 
 ---
 
@@ -136,7 +136,7 @@ module load miniconda
 
 conda activate tutorial
 
-time python 01_mnist_model.py --epochs=6
+time python 01_mnist_model.py --epochs=10
 ```
 
 ### **Submit the job**
@@ -164,8 +164,8 @@ python 01_mnist_model.py --epochs=5 --no-cuda
 ```
 #### **2. Test with Different Batch Sizes**
 ```bash
-python 01_mnist_model.py --epochs=5 --batch-size=128
-python 01_mnist_model.py --epochs=5 --batch-size=256
+python 01_mnist_model.py --epochs=10 --batch-size=128
+python 01_mnist_model.py --epochs=10 --batch-size=256
 ```
 #### **3. Run on Multiple workers**
 Modify `01_slurm_submit.sh`:
@@ -204,7 +204,7 @@ $ pip install transformers
 | **DALI Optimized** (02_mnist_dali.py) | ? | ? |
 | **AMP Enabled** (03_mnist_amp.py) | ? | ? |
 
-_Fill in the results after running the experiments._
+_Note results after running the experiments._
 
 ---
 
