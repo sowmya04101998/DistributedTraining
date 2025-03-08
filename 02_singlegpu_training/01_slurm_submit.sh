@@ -21,4 +21,4 @@ module load miniconda
 #activate the environment
 conda activate tutorial
 
-time python 01_mnist_model.py --epochs=6
+time python 01_mnist_model.py --epochs=10
