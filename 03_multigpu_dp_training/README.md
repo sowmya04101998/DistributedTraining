@@ -1,6 +1,6 @@
 
 
-# **Multi-GPU Training with PyTorch**
+## **Multi-GPU Training with PyTorch**
 This guide extends the **single-GPU training setup** to a **multi-GPU environment**, leveraging:
 - **PyTorch’s `DataParallel` module** for training across multiple GPUs.
 - **Efficient data loading with increased `num_workers`.**
