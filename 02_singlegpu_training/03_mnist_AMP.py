@@ -1,14 +1,14 @@
 # Importing required libraries
-import argparse  # For handling command-line arguments
-import torch  # PyTorch library for tensor operations
-import torch.nn as nn  # PyTorch modules for neural network layers
-import torch.nn.functional as F  # Functions for activations, losses, etc.
-import torch.optim as optim  # PyTorch optimization algorithms
-import os  # For accessing environment variables and file handling
-import time  # For measuring throughput
-from torchvision import datasets, transforms  # For data handling and preprocessing
-from torch.optim.lr_scheduler import StepLR  # Learning rate scheduler
-from torch.cuda.amp import autocast, GradScaler  # Mixed precision training
+import argparse
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+import os 
+import time
+from torchvision import datasets, transforms
+from torch.optim.lr_scheduler import StepLR
+from torch.cuda.amp import autocast, GradScaler
 
 # Define the CNN model
 class Net(nn.Module):
