@@ -1,4 +1,3 @@
----
 
 # **Single-GPU Training with PyTorch and DALI**
 
