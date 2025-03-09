@@ -4,13 +4,6 @@ This guide extends the single-GPU and multi-GPU Data Parallel (DP) training setu
 
 ---
 
-## **Prerequisites**
-
-1. Follow the steps in the [Single-GPU Training Guide](../02_singlegpu_training/) and [Multi-GPU DP Training Guide](../03_multigpu_dp_training/) to set up your environment and repository.
-
-
----
-
 ## **Step 1: Transition to Distributed Data Parallel (DDP)**
 
 Navigate to the DDP directory:
@@ -60,35 +53,7 @@ ddp_model = DDP(model, device_ids=[rank])
 
 ## **Step 3: DDP Training Script**
 
-The training script (`mnist_ddpmodel.py`) includes all necessary configurations for multi-GPU **DDP** training. Key sections include:
-
-### Model Definition
-```python
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)
-        self.conv2 = nn.Conv2d(32, 64, 3, 1)
-        self.dropout1 = nn.Dropout(0.25)
-        self.dropout2 = nn.Dropout(0.5)
-        self.fc1 = nn.Linear(9216, 128)
-        self.fc2 = nn.Linear(128, 10)
-
-    def forward(self, x):
-        x = self.conv1(x)
-        x = F.relu(x)
-        x = self.conv2(x)
-        x = F.relu(x)
-        x = F.max_pool2d(x, 2)
-        x = self.dropout1(x)
-        x = torch.flatten(x, 1)
-        x = self.fc1(x)
-        x = F.relu(x)
-        x = self.dropout2(x)
-        x = self.fc2(x)
-        output = F.log_softmax(x, dim=1)
-        return output
-```
+The training script (`mnist_ddpmodel.py`) includes all necessary configurations for multi-GPU **DDP** training. 
 
 ### Training Function with Throughput Logging
 ```python
