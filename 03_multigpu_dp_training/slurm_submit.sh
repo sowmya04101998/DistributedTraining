@@ -2,7 +2,7 @@
 #SBATCH --job-name=mnist_multiGPU  # Job name
 #SBATCH --nodes=1                  # Number of nodes
 #SBATCH --ntasks=2                 # Number of tasks
-#SBATCH --cpus-per-task=6          # Number of CPU cores per task
+#SBATCH --cpus-per-task=1          # Number of CPU cores per task
 #SBATCH --partition=gpu            # GPU partition
 #SBATCH --reservation=SCA          # Reservation
 #SBATCH --gres=gpu:2               # Number of GPUs (adjust as needed)
@@ -23,5 +23,5 @@ module load miniconda
 conda activate tutorial
 
 # Run the script
-time python mnist_multigpu.py --epochs=6 --batch-size=128
+time python mnist_multigpu.py --epochs=10 --batch-size=128
 
