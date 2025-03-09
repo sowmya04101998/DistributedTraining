@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=mnist_multinode     # Job name
+#SBATCH --job-name=mnist_ddp           # Job name
 #SBATCH --nodes=2                      # Number of nodes
 #SBATCH --ntasks-per-node=1            # Number of tasks (one per GPU per node)
 #SBATCH --gres=gpu:2                   # Number of GPUs on each node
