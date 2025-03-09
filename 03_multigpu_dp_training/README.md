@@ -1,8 +1,7 @@
 ## **Multi-GPU Training with PyTorch**
 This guide extends the **single-GPU training setup** to a **multi-GPU environment**, leveraging:
 - **PyTorch’s `DataParallel` module** for training across multiple GPUs.
-- **Efficient data loading with increased `num_workers`.**
-- **Optimized Slurm job script for multi-GPU execution.**
+- **Data loading with increased `num_workers`.**
 
 ---
 
@@ -32,7 +31,7 @@ if use_cuda and torch.cuda.device_count() > 1:
     print(f"Using {torch.cuda.device_count()} GPUs.")
     model = nn.DataParallel(model)
 
-model = model.to(device)  # Move model to the appropriate device
+model = model.to(device)
 ```
 ---
 
@@ -44,7 +43,7 @@ Create a **Slurm submission script** (`slurm_submit.sh`) to allocate multiple GP
 #SBATCH --job-name=mnist_multiGPU  # Job name
 #SBATCH --nodes=1                  # Number of nodes
 #SBATCH --ntasks=2                 # Number of tasks
-#SBATCH --cpus-per-task=6          # Number of CPU cores per task
+#SBATCH --cpus-per-task=1          # Number of CPU cores per task
 #SBATCH --partition=gpu            # GPU partition
 #SBATCH --reservation=SCA          # Reservation
 #SBATCH --gres=gpu:2               # Number of GPUs (adjust as needed)
@@ -65,7 +64,7 @@ module load miniconda
 conda activate tutorial
 
 # Run the script
-time python mnist_multigpu.py --epochs=6 --batch-size=128
+time python mnist_multigpu.py --epochs=10 --batch-size=128
 ```
 
 Submit the job:
@@ -99,26 +98,18 @@ Compare performance for **different setups**.
 ### **Run Experiments**
 **Baseline (Single GPU)**
 ```bash
-python 01_mnist_model.py --epochs=5 --batch-size=128 --num-workers=8
+python 01_mnist_model.py --epochs=10 --batch-size=128 --num-workers=8
 ```
 **Multi-GPU Training**
 ```bash
-python mnist_multigpu.py --epochs=5 --batch-size=256
+python mnist_multigpu.py --epochs=10 --batch-size=256
 ```
 **Benefit**: **Find the best-performing setup!**
 
 ---
 
-## **Assignments**
-1. **Test different `--gres=gpu` values (1 vs. 2 GPUs)** and analyze performance.
-2. **Modify `--cpus-per-task` (2, 4, 8) and check resource utilization**.
-3. **Change `--batch-size` to 128 and 256** to measure training speed and GPU utilization.
-
----
-
 ## **Summary**
 - **Multi-GPU training accelerates deep learning workloads**.
-- **Optimized `num_workers=8` improves data loading speed**.
 - **Throughput analysis helps measure performance gains**.
 
 ---
