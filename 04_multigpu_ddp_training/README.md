@@ -79,7 +79,7 @@ Create a Slurm submission script (`slurm_submit_ddp.sh`) to allocate multiple GP
 
 ```bash
 #!/bin/bash
-#SBATCH --job-name=mnist_multinode     # Job name
+#SBATCH --job-name=mnist_ddp           # Job name
 #SBATCH --nodes=2                      # Number of nodes
 #SBATCH --ntasks-per-node=1            # Number of tasks (one per GPU per node)
 #SBATCH --gres=gpu:2                   # Number of GPUs on each node
@@ -97,7 +97,7 @@ head_node_ip=$(srun --nodes=1 --ntasks=1 -w "$head_node" hostname --ip-address)
 
 # Set environment variables for PyTorch distributed training
 export MASTER_ADDR=$head_node_ip   # Set the master node IP address
-export MASTER_PORT=29900           # Change as per requirement
+export MASTER_PORT=29900           # Any available port
 export WORLD_SIZE=$(($SLURM_NNODES * $SLURM_GPUS_ON_NODE))
 export RANK=$SLURM_PROCID          # Rank of the current process
 export LOGLEVEL=INFO               # Log level for debugging
