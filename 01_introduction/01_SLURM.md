@@ -7,7 +7,6 @@ Slurm(Simple Linux Utility for Resource Management), is a powerful computational
 
 #### Think of it like:
 - **A Laboratory Resource Manager**: Similar to how a lab manages shared equipment like microscopes and sequencers, Slurm controls shared computer resources in an HPC cluster.
-- **A Traffic Control System**: It manages the flow of computational tasks to optimize resource use and ensure timely completion of jobs.
 
 For the latest documentation, visit the [official Slurm website](https://slurm.schedmd.com/documentation.html).
 
