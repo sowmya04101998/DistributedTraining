@@ -3,7 +3,7 @@
 ## Introduction
 
 ### What is Slurm?
-Slurm, formerly known as **SLURM** (Simple Linux Utility for Resource Management), is a powerful computational workload scheduler used on many of the world's largest supercomputers. It manages computing resources efficiently, ensuring fair access to available nodes in a cluster. 
+Slurm(Simple Linux Utility for Resource Management), is a powerful computational workload scheduler used on many of the world's largest supercomputers. It manages computing resources efficiently, ensuring fair access to available nodes in a cluster. 
 
 #### Think of it like:
 - **A Laboratory Resource Manager**: Similar to how a lab manages shared equipment like microscopes and sequencers, Slurm controls shared computer resources in an HPC cluster.
