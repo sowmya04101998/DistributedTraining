@@ -114,9 +114,28 @@ python mnist_multigpu.py --epochs=10 --batch-size=256
 
 ---
 
-## ** Why `DataParallel` vs. `Distributed Data Parallel (DDP)`?**
-- **`DataParallel` (DP) is easy to use but has limitations**.
-- **DP replicates models on each GPU, causing communication overhead**.
-- **`Distributed Data Parallel (DDP)` is preferred for large-scale training** because it minimizes **inter-GPU communication overhead**.
+## **Why Choose `Distributed Data Parallel (DDP)` Over `DataParallel`?**
+
+### **Key Differences**
+| Feature | `DataParallel` (DP) | `Distributed Data Parallel` (DDP) |
+|----------|--------------------|---------------------------------|
+| **Ease of Use** | Simple to implement (`model = nn.DataParallel(model)`) | Requires setting up process groups |
+| **Performance** | High inter-GPU communication overhead | Efficient communication, optimized for scalability |
+| **Scalability** | Limited to a single node | Works across multiple nodes and GPUs |
+| **Gradient Synchronization** | Performed on the main GPU, causing bottlenecks | Each GPU synchronizes gradients independently |
+| **Recommended Use** | Small-scale models, quick prototyping | Large-scale training, multi-GPU/multi-node setups |
+
+### **Why `DataParallel` Has Limitations**
+- **Replicates the model on every GPU** in each forward pass.
+- **Synchronizes gradients on the main GPU**, creating a **bottleneck**.
+- **Inefficient scaling beyond a single node**.
+
+### **Why `Distributed Data Parallel (DDP)` Is Preferred**
+- **Each GPU has its own dedicated process**, avoiding bottlenecks.
+- **Minimizes inter-GPU communication overhead**, improving efficiency.
+- **Scales seamlessly across multiple GPUs and nodes** for large-scale training.
+
+### **Conclusion**
+If you’re training deep learning models on multiple GPUs, **DDP is the preferred approach** due to its efficiency, scalability, and performance benefits.
 
 [Proceed to Distributed Data Parallel Training](../04_multigpu_ddp_training/)
