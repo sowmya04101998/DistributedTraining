@@ -96,13 +96,13 @@ For multi-GPU training, modify the SLURM script:
 time srun --container-image=/home/apps/enroot/nvidia+pytorch+24.11-py3.sqsh \
           --container-name=pytorch_multi \
           --container-mounts=$HOME/SCA-2025-DistributedTraining/06_DL_container/:/workspace \
-          sh -c 'cd /workspace && python 03_ngc_dd.py --epochs=10'
+          sh -c 'cd /workspace && python 03_mnist_ddp.py --epochs=10'
 ```
 
 Submit the job:
 
 ```bash
-sbatch 02_
+sbatch 03_ngc_ddp_multinode.sh
 ```
 ```
 
