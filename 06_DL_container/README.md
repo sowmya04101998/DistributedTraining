@@ -67,13 +67,13 @@ For longer training runs, use **SLURM batch jobs**.
 
 time srun --container-image=/home/apps/enroot/nvidia+pytorch+24.11-py3.sqsh \
           --container-name=pytorch \
-          --container-mounts=$HOME/SCA-2025-DistributedTraining/02_singlegpu_training/:/workspace \
-          sh -c 'cd /workspace && python mnist_model.py --epochs=10'
+          --container-mounts=$HOME/SCA-2025-DistributedTraining/06_DL_container/:/workspace \
+          sh -c 'cd /workspace && python 01_mnist_model.py --epochs=10'
 ```
 
 #### ** Submit the SLURM Job**
 ```bash
-sbatch pytorch_enroot.sh
+sbatch 01_mnist_model.sh
 ```
 
 ---
@@ -95,14 +95,14 @@ For multi-GPU training, modify the SLURM script:
 
 time srun --container-image=/home/apps/enroot/nvidia+pytorch+24.11-py3.sqsh \
           --container-name=pytorch_multi \
-          --container-mounts=$HOME/SCA-2025-DistributedTraining/03_multigpu_dp_training/:/workspace \
-          sh -c 'cd /workspace && python mnist_multigpu.py --epochs=10'
+          --container-mounts=$HOME/SCA-2025-DistributedTraining/06_DL_container/:/workspace \
+          sh -c 'cd /workspace && python 03_ngc_dd.py --epochs=10'
 ```
 
 Submit the job:
 
 ```bash
-sbatch pytorch_multiGPU.sh
+sbatch 02_
 ```
 ```
 
