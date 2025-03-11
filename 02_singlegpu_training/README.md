@@ -5,11 +5,11 @@ Optimizing your script for a **single GPU** is a crucial first step before scali
 
 ---
 
-## **Step 1: Copy Data and Model from Common Directory**
-```bash
-$ cp -r /home/apps/SCA-tutorial .
-```
+## **Step 1: Data and Model are available on home Directory**
 Navigate to the **single-GPU directory**:
+
+Follow the main directory
+
 ```bash
 $ cd DistributedTraining/02_singlegpu_training
 ```
