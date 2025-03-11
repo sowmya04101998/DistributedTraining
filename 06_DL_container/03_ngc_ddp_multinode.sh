@@ -34,7 +34,7 @@ echo "RANK: $RANK"
 
 time srun --container-image=/home/apps/enroot/nvidia+pytorch+24.11-py3.sqsh \
         --container-name=pytorch \
---container-mounts=$HOME/SCA-2025-DistributedTraining/04_multigpu_ddp_training/:/workspace,/var/share/slurm/slurm.taskprolog:/var/share/slurm/slurm.taskprolog \
+--container-mounts=$HOME/SCA-2025-DistributedTraining/06_DL_container/:/workspace,/var/share/slurm/slurm.taskprolog:/var/share/slurm/slurm.taskprolog \
         sh -c 'cd /workspace && torchrun \
     --nnodes=2 \
     --nproc-per-node=2 \
