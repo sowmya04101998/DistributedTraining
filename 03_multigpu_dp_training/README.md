@@ -98,7 +98,7 @@ Compare performance for **different setups**.
 ### **Run Experiments**
 **Baseline (Single GPU)**
 ```bash
-python 01_mnist_model.py --epochs=10 --batch-size=128 --num-workers=8
+python 01_mnist_model.py --epochs=10 --batch-size=128
 ```
 **Multi-GPU Training**
 ```bash
