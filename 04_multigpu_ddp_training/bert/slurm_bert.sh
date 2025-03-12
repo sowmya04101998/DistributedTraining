@@ -8,6 +8,7 @@
 #SBATCH --output=logs_%j.out           # Standard output log file
 #SBATCH --error=logs_%j.err            # Standard error log file
 #SBATCH --time=00:30:00                # Time limit
+#SBATCH --reservation=SCA
 
 # Get the list of nodes and set the head node
 nodes_array=($(scontrol show hostnames $SLURM_JOB_NODELIST))
