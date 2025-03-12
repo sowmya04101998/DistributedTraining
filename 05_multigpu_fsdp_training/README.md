@@ -147,6 +147,4 @@ gradient_accumulation_steps=$(( total_batch_size / batch_size_per_device / num_g
 
 For more details, visit: [PyTorch FSDP Docs](https://pytorch.org/docs/stable/fsdp.html)
 
-[Go to Multi-GPU DDP Training](../04_multigpu_ddp_training/)
-
 ---
