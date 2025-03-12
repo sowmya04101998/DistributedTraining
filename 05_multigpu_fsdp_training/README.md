@@ -140,11 +140,6 @@ batch_size_per_device=8
 gradient_accumulation_steps=$(( total_batch_size / batch_size_per_device / num_gpus ))
 ```
 
-## **Step 6: Assignments**
-1. Change `--cpus-per-task` in `slurm_submit.sh` to 4 or 8 and analyze performance.
-2. Adjust `--batch_size_per_device` to **4, 8, 16** and check training speed.
----
-
 ## **Summary**
 - **FSDP reduces memory usage** and **improves efficiency** for large models.
 - **Batch size and gradient accumulation** tuning is crucial.
