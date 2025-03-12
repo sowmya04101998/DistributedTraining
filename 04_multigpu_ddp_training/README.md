@@ -9,7 +9,7 @@ This guide extends the single-GPU and multi-GPU Data Parallel (DP) training setu
 Navigate to the DDP directory:
 
 ```bash
-$ cd DistributedTraining/04_multigpu_ddp_training
+$ $ cd SCA-2025-DistributedTraining/DistributedTraining/04_multigpu_ddp_training
 ```
 
 This directory contains the modified script and configurations for multi-GPU **DDP** training.
