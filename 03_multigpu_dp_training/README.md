@@ -13,7 +13,7 @@ Before proceeding, complete the setup in the **[Single-GPU Training Guide](../02
 ## **Step 2: Transition to Multi-GPU**
 Navigate to the **multi-GPU directory**:
 ```bash
-$ cd $ cd SCA-2025-DistributedTraining/DistributedTraining/03_multigpu_dp_training
+$ cd SCA-2025-DistributedTraining/DistributedTraining/03_multigpu_dp_training
 ```
 This directory contains the **modified training scripts** and **Slurm job scripts** optimized for **multi-GPU training**.
 
