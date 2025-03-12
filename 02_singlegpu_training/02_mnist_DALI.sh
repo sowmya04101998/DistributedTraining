@@ -21,4 +21,4 @@ module load miniconda
 #activate the environment
 conda activate tutorial
 
-time python 01_mnist_DALI.py --epochs=10
+time python 02_mnist_DALI.py --epochs=10
