@@ -117,7 +117,7 @@ module load miniconda
 conda activate tutorial
 
 # Run the PyTorch script with torchrun
-srun torchrun \
+time srun torchrun \
     --nnodes=$SLURM_NNODES \
     --nproc-per-node=2 \
     --rdzv-id=10 \
