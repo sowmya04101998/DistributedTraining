@@ -11,7 +11,7 @@ Navigate to the **single-GPU directory**:
 Follow the main directory
 
 ```bash
-$ cd SCA-2025-DistributedTraining/DistributedTraining/02_singlegpu_training
+$ cd DistributedTraining/02_singlegpu_training
 ```
 
 ---
