@@ -39,13 +39,8 @@ This repository provides a comprehensive guide and practical examples for traini
 
 ---
 
-### 05. **Fully Sharded Data Parallel (FSDP) Training**
-- Training large models with memory efficiency using Fully Sharded Data Parallel (FSDP).
-- Fine-tuning large-scale models like **CodeLlama**.
 
----
-
-### 06. **Containerized Training with Enroot and NGC Containers**
+### 05. **Containerized Training with Enroot and NGC Containers**
 - Running PyTorch training using **NVIDIA Enroot** and **NGC Containers** on HPC.
 - **Topics Covered:**
   - Importing and running **NGC PyTorch containers** with Enroot.
@@ -61,7 +56,6 @@ This repository provides a comprehensive guide and practical examples for traini
 - [Data Parallel](https://pytorch.org/docs/stable/generated/torch.nn.DataParallel.html)
 - [Distributed Data Parallel (DDP)](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)
 - [Hugging Face Transformers](https://huggingface.co/docs/transformers/)
-- [PyTorch FSDP Tutorial](https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html)
 - [NVIDIA Enroot](https://github.com/NVIDIA/enroot)
 - [NGC PyTorch Containers](https://ngc.nvidia.com/catalog/containers/nvidia:pytorch)
 
