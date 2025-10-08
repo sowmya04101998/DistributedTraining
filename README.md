@@ -1,6 +1,6 @@
 # **Deep Learning Training Examples with PyTorch**
 
-This repository provides a comprehensive guide and practical examples for training deep learning models using PyTorch across various parallelism strategies. Whether you are working on single-GPU training or scaling to multi-GPU setups with Distributed Data Parallel (DDP) or Fully Sharded Data Parallel (FSDP), these examples will guide you through the process.
+This repository provides a comprehensive guide and practical examples for training deep learning models using PyTorch across various parallelism strategies. Whether you are working on single-GPU training or scaling to multi-GPU setups with Distributed Data Parallel (DDP)  these examples will guide you through the process.
 
 ---
 
