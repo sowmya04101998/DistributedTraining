@@ -1,5 +1,5 @@
 
-# **Single-GPU Training with PyTorch **
+# **Single-GPU Training with PyTorch**
 
 Optimizing your script for a **single GPU** is a crucial first step before scaling to multiple GPUs. Inefficient single-GPU code may result in **wasted resources and longer queue times** when running multi-GPU jobs. This guide demonstrates how to train a **CNN on the MNIST dataset** using a **single GPU**.
 
