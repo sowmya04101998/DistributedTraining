@@ -16,9 +16,6 @@ This repository provides a comprehensive guide and practical examples for traini
 
 ### 02. **Single-GPU Training**
 - Efficiently training models on a single GPU.
-- **Optimizations:**
-  - **DALI**: Efficient data loading using NVIDIA Data Loading Library.
-  - **AMP**: Automatic Mixed Precision for faster training with reduced memory consumption.
 
 ---
 
